@@ -19,7 +19,9 @@
 				updateManager.onUpdateFailed();
 			}
 		},
-		globalData: {}
+		globalData: {
+			wx_openid: uni.getStorageSync('wx_openid')
+		}
 	}
 </script>
 

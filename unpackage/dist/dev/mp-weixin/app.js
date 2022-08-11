@@ -8,12 +8,7 @@ if (!Math) {
 const _sfc_main = {
   onLaunch() {
     let that = this;
-    this.checkForUpdate();
-    console.log("1");
-    setTimeout(() => {
-      that.$isResolve();
-    }, 2e3);
-    console.log("2");
+    that.checkForUpdate();
   },
   methods: {
     checkForUpdate() {
@@ -25,7 +20,9 @@ const _sfc_main = {
       updateManager.onUpdateFailed();
     }
   },
-  globalData: {}
+  globalData: {
+    wx_openid: common_vendor.index.getStorageSync("wx_openid")
+  }
 };
 var App = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["__file", "C:/HBuilderX/projects/RecordLife/App.vue"]]);
 function createApp() {

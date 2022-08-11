@@ -6317,7 +6317,7 @@ switch (f) {
   default:
     g = f;
 }
-const p = h('{\n    "address": [\n        "127.0.0.1",\n        "192.168.109.49"\n    ],\n    "debugPort": 56986,\n    "initialLaunchType": "local",\n    "servePort": 56987,\n    "skipFiles": [\n        "<node_internals>/**/*.js",\n        "C:/HBuilderX/HBuilderX/plugins/unicloud/**/*.js"\n    ]\n}\n'), m = h('[{"provider":"aliyun","spaceName":"record-life","spaceId":"bcf64df9-4d03-4023-bc85-9000afa0f691","clientSecret":"7OHDBYncGIzdkVKmRsWQxg==","endpoint":"https://api.bspapp.com"}]');
+const p = h('{\n    "address": [\n        "127.0.0.1",\n        "192.168.109.56"\n    ],\n    "debugPort": 57240,\n    "initialLaunchType": "local",\n    "servePort": 57241,\n    "skipFiles": [\n        "<node_internals>/**/*.js",\n        "C:/HBuilderX/HBuilderX/plugins/unicloud/**/*.js"\n    ]\n}\n'), m = h('[{"provider":"aliyun","spaceName":"record-life","spaceId":"bcf64df9-4d03-4023-bc85-9000afa0f691","clientSecret":"7OHDBYncGIzdkVKmRsWQxg==","endpoint":"https://api.bspapp.com"}]');
 let _ = "";
 try {
   _ = "__UNI__643D500";
@@ -8243,6 +8243,8 @@ let on = new class {
     } }), zt(on), on.addInterceptor = v, on.removeInterceptor = A, g === "web" && (window.uniCloud = on);
   }
 })();
+var rn = on;
 exports._export_sfc = _export_sfc;
 exports.createSSRApp = createSSRApp;
 exports.index = index;
+exports.rn = rn;

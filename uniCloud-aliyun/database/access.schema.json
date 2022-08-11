@@ -1,0 +1,24 @@
+// 文档教程: https://uniapp.dcloud.net.cn/uniCloud/schema
+{
+	"bsonType": "object",
+	"required": ["wx_openid", "accessList"],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": true
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"wx_openid": {
+			"description": "微信登录的openid",
+			"bsonType": "string"
+		},
+		"accessList": {
+			"description": "访问记录列表",
+			"bsonType": "array"
+		}
+	}
+}
