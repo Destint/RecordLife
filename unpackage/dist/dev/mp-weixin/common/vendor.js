@@ -33,6 +33,28 @@ function makeMap(str, expectsLowerCase) {
   }
   return expectsLowerCase ? (val) => !!map[val.toLowerCase()] : (val) => !!map[val];
 }
+const toDisplayString = (val) => {
+  return isString(val) ? val : val == null ? "" : isArray(val) || isObject$1(val) && (val.toString === objectToString || !isFunction(val.toString)) ? JSON.stringify(val, replacer, 2) : String(val);
+};
+const replacer = (_key, val) => {
+  if (val && val.__v_isRef) {
+    return replacer(_key, val.value);
+  } else if (isMap(val)) {
+    return {
+      [`Map(${val.size})`]: [...val.entries()].reduce((entries, [key, val2]) => {
+        entries[`${key} =>`] = val2;
+        return entries;
+      }, {})
+    };
+  } else if (isSet(val)) {
+    return {
+      [`Set(${val.size})`]: [...val.values()]
+    };
+  } else if (isObject$1(val) && !isArray(val) && !isPlainObject(val)) {
+    return String(val);
+  }
+  return val;
+};
 const EMPTY_OBJ = Object.freeze({});
 const EMPTY_ARR = Object.freeze([]);
 const NOOP = () => {
@@ -5311,6 +5333,7 @@ function getCreateApp() {
     return my[method];
   }
 }
+const t$1 = (val) => toDisplayString(val);
 function createApp$1(rootComponent, rootProps = null) {
   rootComponent && (rootComponent.mpType = "app");
   return createVueApp(rootComponent, rootProps).use(plugin);
@@ -6317,7 +6340,7 @@ switch (f) {
   default:
     g = f;
 }
-const p = h('{\n    "address": [\n        "127.0.0.1",\n        "192.168.109.56"\n    ],\n    "debugPort": 57240,\n    "initialLaunchType": "local",\n    "servePort": 57241,\n    "skipFiles": [\n        "<node_internals>/**/*.js",\n        "C:/HBuilderX/HBuilderX/plugins/unicloud/**/*.js"\n    ]\n}\n'), m = h('[{"provider":"aliyun","spaceName":"record-life","spaceId":"bcf64df9-4d03-4023-bc85-9000afa0f691","clientSecret":"7OHDBYncGIzdkVKmRsWQxg==","endpoint":"https://api.bspapp.com"}]');
+const p = h('{\n    "address": [\n        "127.0.0.1",\n        "192.168.109.56"\n    ],\n    "debugPort": 57452,\n    "initialLaunchType": "local",\n    "servePort": 57453,\n    "skipFiles": [\n        "<node_internals>/**/*.js",\n        "C:/HBuilderX/HBuilderX/plugins/unicloud/**/*.js"\n    ]\n}\n'), m = h('[{"provider":"aliyun","spaceName":"record-life","spaceId":"bcf64df9-4d03-4023-bc85-9000afa0f691","clientSecret":"7OHDBYncGIzdkVKmRsWQxg==","endpoint":"https://api.bspapp.com"}]');
 let _ = "";
 try {
   _ = "__UNI__643D500";
@@ -8248,3 +8271,4 @@ exports._export_sfc = _export_sfc;
 exports.createSSRApp = createSSRApp;
 exports.index = index;
 exports.rn = rn;
+exports.t = t$1;

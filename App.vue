@@ -3,7 +3,7 @@
 		onLaunch() {
 			let that = this;
 
-			that.checkForUpdate();
+			// that.checkForUpdate();
 		},
 		methods: {
 			/**
@@ -20,7 +20,8 @@
 			}
 		},
 		globalData: {
-			wx_openid: uni.getStorageSync('wx_openid')
+			wx_openid: uni.getStorageSync('wx_openid'),
+			noticeCacheName: 'notice'
 		}
 	}
 </script>

@@ -1,1 +1,1 @@
-<view class="view-page-memory"></view>
+<view class="view-page-memory"><view class="view-area-topInfo"><view class="view-box-notice"><image class="image-icon-basic" src="/static/img_notice_icon.png" style="width:35rpx;height:32rpx"></image><text class="text-content-whiteThirty" style="margin-left:20rpx">{{a}}</text></view><view class="view-box-memorySum"><text class="text-content-whiteThirty">全部回忆({{b}})</text></view></view></view>
