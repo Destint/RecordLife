@@ -1,5 +1,6 @@
 "use strict";
 var common_vendor = require("../../common/vendor.js");
+var common_commonFunctions = require("../../common/commonFunctions.js");
 const serverDate = common_vendor.rn.importObject("serverDate");
 const db = common_vendor.rn.database();
 const app = getApp();
@@ -7,10 +8,60 @@ const _sfc_main = {
   data() {
     return {
       notice: common_vendor.index.getStorageSync(app.globalData.noticeCacheName) ? common_vendor.index.getStorageSync(app.globalData.noticeCacheName) : "",
-      memorySum: 0
+      memorySum: common_vendor.index.getStorageSync(app.globalData.memorySumCacheName) ? common_vendor.index.getStorageSync(app.globalData.memorySumCacheName) : 0,
+      memoryList: common_vendor.index.getStorageSync(app.globalData.memoryCacheName) ? common_vendor.index.getStorageSync(app.globalData.memoryCacheName) : [],
+      isShowPopup: false,
+      memoryDetail: {},
+      isShowMemoryDetail: false,
+      isPlayRecord: false,
+      playRecordProgress: 0
     };
   },
   async onLoad() {
+    let that = this;
+    common_vendor.index.showLoading({
+      title: "\u8F7D\u5165\u56DE\u5FC6\u4E2D",
+      mask: true
+    });
+    if (!app.globalData.wx_openid)
+      await common_commonFunctions.commonFunctions.wxLogin();
+    that.getNoticeFromCloud();
+    await that.getMemoryFromCloud(app.globalData.wx_openid, 0);
+    common_vendor.index.hideLoading();
+  },
+  async onPullDownRefresh() {
+    let that = this;
+    try {
+      common_vendor.index.showLoading({
+        title: "\u66F4\u65B0\u56DE\u5FC6\u4E2D",
+        mask: true
+      });
+      that.getNoticeFromCloud();
+      await that.getMemoryFromCloud(app.globalData.wx_openid, 0);
+      common_vendor.index.stopPullDownRefresh();
+      common_vendor.index.hideLoading();
+    } catch (e) {
+    }
+  },
+  async onReachBottom() {
+    let that = this;
+    try {
+      let currentIndex = that.memoryList.length;
+      if (currentIndex === that.memorySum) {
+        common_vendor.index.showToast({
+          title: "\u56DE\u5FC6\u5230\u5E95\u5566",
+          icon: "none"
+        });
+      } else {
+        common_vendor.index.showLoading({
+          title: "\u8F7D\u5165\u56DE\u5FC6\u4E2D",
+          mask: true
+        });
+        await that.getMemoryFromCloud(app.globalData.wx_openid, currentIndex);
+        common_vendor.index.hideLoading();
+      }
+    } catch (e) {
+    }
   },
   methods: {
     async uploadAccessToCloud(wx_openid) {
@@ -39,26 +90,144 @@ const _sfc_main = {
       }
     },
     async getNoticeFromCloud() {
+      let that = this;
       try {
         await db.collection("notice").where("_id == '62f49bb51ff3ac000168404b'").get().then((res) => {
           if (res.result.errCode === 0) {
             let currentNotice = res.result.data[0].noticeList[0].notice;
             if (currentNotice !== common_vendor.index.getStorageSync(app.globalData.noticeCacheName)) {
-              this.notice = currentNotice;
+              that.notice = currentNotice;
               common_vendor.index.setStorageSync(app.globalData.noticeCacheName, currentNotice);
             }
           }
         }).catch();
       } catch (e) {
       }
+    },
+    async getMemoryFromCloud(wx_openid, currentIndex) {
+      let that = this;
+      try {
+        await db.collection("memory").where("wx_openid == '" + wx_openid + "'").get().then((res) => {
+          if (res.result.errCode === 0) {
+            let allMemory = res.result.data[0] ? res.result.data[0].memoryList : [];
+            let currentMemory = allMemory.slice(currentIndex, currentIndex + 15);
+            let memorySum = allMemory.length;
+            if (currentIndex === 0) {
+              that.memoryList = currentMemory;
+              that.memorySum = memorySum;
+              common_vendor.index.setStorageSync(app.globalData.memoryCacheName, currentMemory);
+              common_vendor.index.setStorageSync(app.globalData.memorySumCacheName, memorySum);
+            } else {
+              that.memoryList = that.memoryList.concat(currentMemory);
+            }
+          }
+        }).catch();
+      } catch (e) {
+      }
+    },
+    onClickMemoryCell(memory) {
+      let that = this;
+      that.isShowPopup = true;
+      that.memoryDetail = memory;
+      that.isShowMemoryDetail = true;
+    },
+    onClickEditorMemory(memory) {
+      console.log("\u70B9\u7F16\u8F91\u7684\u56DE\u5FC6\u5185\u5BB9", memory);
+      console.log("\u70B9\u51FB\u7F16\u8F91\u7684\u56DE\u5FC6id", memory.id);
+    },
+    onClickAddMemory() {
+      console.log("\u70B9\u51FB\u6DFB\u52A0\u56DE\u5FC6");
+    },
+    onClickMemoryDetailMask() {
+      let that = this;
+      that.isShowMemoryDetail = false;
+      that.isShowPopup = false;
+      that.memoryDetail = {};
+    },
+    onPreviewMemoryCellPic(location, index) {
+      let that = this;
+      try {
+        let picPathList = location === "cloud" ? that.memoryDetail.cloudPicPathList : that.memoryDetail.localPicPathList;
+        let currentPic = picPathList ? picPathList[index] ? picPathList[index] : "" : "";
+        let currentPicPathList = [];
+        if (!currentPic)
+          return;
+        for (let i = 0; i < picPathList.length; i++) {
+          if (picPathList[i])
+            currentPicPathList.push(picPathList[i]);
+        }
+        common_vendor.index.previewImage({
+          current: currentPic,
+          urls: currentPicPathList
+        });
+      } catch (e) {
+      }
     }
   }
 };
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
-  return {
-    a: common_vendor.t($data.notice),
-    b: common_vendor.t($data.memorySum)
-  };
+  return common_vendor.e({
+    a: "overflow:" + ($data.isShowPopup ? "hidden" : "visible"),
+    b: common_vendor.t($data.notice),
+    c: common_vendor.t($data.memorySum),
+    d: $data.memorySum > 0
+  }, $data.memorySum > 0 ? {
+    e: common_vendor.f($data.memoryList, (item, index, i0) => {
+      return common_vendor.e({
+        a: common_vendor.t(item.title),
+        b: common_vendor.t(item.content),
+        c: item.cloudPicPathList.length > 0
+      }, item.cloudPicPathList.length > 0 ? {
+        d: common_vendor.f(item.cloudPicPathList, (picItem, picIndex, i1) => {
+          return {
+            a: picItem ? picItem : "../../static/img_empty_icon.png",
+            b: common_vendor.s("margin-left:" + (picIndex === 0 ? "0rpx" : "5rpx")),
+            c: picIndex
+          };
+        })
+      } : {}, {
+        e: common_vendor.t(item.date + "    " + item.simpleAddress),
+        f: common_vendor.o(($event) => $options.onClickEditorMemory(item)),
+        g: common_vendor.s("margin-top:" + (index === 0 ? "-70rpx" : "20rpx")),
+        h: common_vendor.o(($event) => $options.onClickMemoryCell(item)),
+        i: index
+      });
+    })
+  } : {}, {
+    f: common_vendor.o((...args) => $options.onClickAddMemory && $options.onClickAddMemory(...args)),
+    g: $data.isShowMemoryDetail === true
+  }, $data.isShowMemoryDetail === true ? common_vendor.e({
+    h: common_vendor.o((...args) => $options.onClickMemoryDetailMask && $options.onClickMemoryDetailMask(...args)),
+    i: common_vendor.t($data.memoryDetail.title),
+    j: $data.memoryDetail.cloudPicPathList.length > 0
+  }, $data.memoryDetail.cloudPicPathList.length > 0 ? {
+    k: common_vendor.f($data.memoryDetail.cloudPicPathList, (item, index, i0) => {
+      return {
+        a: item ? item : "../../static/img_empty_icon.png",
+        b: common_vendor.o(($event) => $options.onPreviewMemoryCellPic("cloud", index)),
+        c: common_vendor.s("margin-left:" + ((index + 1) % 5 === 1 ? "0rpx" : "10rpx") + ";margin-top:" + (index > 4 ? "5rpx" : "0rpx")),
+        d: index
+      };
+    })
+  } : {}, {
+    l: $data.memoryDetail.cloudRecordPath
+  }, $data.memoryDetail.cloudRecordPath ? {
+    m: common_vendor.t($data.memoryDetail.recordDuration),
+    n: common_vendor.o(($event) => _ctx.onClickPlayRecord($data.memoryDetail.cloudRecordPath)),
+    o: $data.isPlayRecord ? "../../static/img_paush_record_icon.png" : "../../static/img_play_record_icon.png"
+  } : {}, {
+    p: $data.memoryDetail.content
+  }, $data.memoryDetail.content ? {
+    q: common_vendor.t($data.memoryDetail.content)
+  } : {}, {
+    r: $data.memoryDetail.date
+  }, $data.memoryDetail.date ? {
+    s: common_vendor.t($data.memoryDetail.date)
+  } : {}, {
+    t: $data.memoryDetail.address && $data.memoryDetail.address !== " "
+  }, $data.memoryDetail.address && $data.memoryDetail.address !== " " ? {
+    v: common_vendor.t($data.memoryDetail.address)
+  } : {}) : {});
 }
 var MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__file", "C:/HBuilderX/projects/RecordLife/pages/memory/memory.vue"]]);
 wx.createPage(MiniProgramPage);

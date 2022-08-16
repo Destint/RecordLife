@@ -21,7 +21,9 @@
 		},
 		globalData: {
 			wx_openid: uni.getStorageSync('wx_openid'),
-			noticeCacheName: 'notice'
+			noticeCacheName: 'notice',
+			memoryCacheName: 'memory',
+			memorySumCacheName: 'memorySum'
 		}
 	}
 </script>

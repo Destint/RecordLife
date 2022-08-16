@@ -20,7 +20,9 @@ const _sfc_main = {
   },
   globalData: {
     wx_openid: common_vendor.index.getStorageSync("wx_openid"),
-    noticeCacheName: "notice"
+    noticeCacheName: "notice",
+    memoryCacheName: "memory",
+    memorySumCacheName: "memorySum"
   }
 };
 var App = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["__file", "C:/HBuilderX/projects/RecordLife/App.vue"]]);
