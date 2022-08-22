@@ -13,8 +13,7 @@ const _sfc_main = {
       isShowPopup: false,
       memoryDetail: {},
       isShowMemoryDetail: false,
-      isPlayRecord: false,
-      playRecordProgress: 0
+      isShowAddMemory: false
     };
   },
   async onLoad() {
@@ -136,7 +135,14 @@ const _sfc_main = {
       console.log("\u70B9\u51FB\u7F16\u8F91\u7684\u56DE\u5FC6id", memory.id);
     },
     onClickAddMemory() {
-      console.log("\u70B9\u51FB\u6DFB\u52A0\u56DE\u5FC6");
+      let that = this;
+      that.isShowPopup = true;
+      that.memoryDetail = {
+        title: "",
+        localPicPathList: [],
+        content: ""
+      };
+      that.isShowAddMemory = true;
     },
     onClickMemoryDetailMask() {
       let that = this;
@@ -162,6 +168,64 @@ const _sfc_main = {
         });
       } catch (e) {
       }
+    },
+    inputMemoryTitle(event) {
+      let that = this;
+      that.memoryDetail.title = event.target.value;
+    },
+    onClickDeletePic(index) {
+      let that = this;
+      that.memoryDetail.localPicPathList.splice(index, 1);
+    },
+    async onClickAddPic() {
+      let that = this;
+      try {
+        let localPicPathList = that.memoryDetail.localPicPathList;
+        if (localPicPathList.length >= 5) {
+          common_vendor.index.showToast({
+            title: "\u56FE\u7247\u6700\u591A\u8BB0\u5F555\u5F20",
+            icon: "none"
+          });
+        } else {
+          let imageRes = await common_vendor.index.chooseImage({
+            count: 5 - localPicPathList.length,
+            sizeType: ["compressed"],
+            sourceType: ["album"]
+          });
+          let chooseImageList = imageRes.tempFilePaths;
+          for (let i = 0; i < chooseImageList.length; i++) {
+            let compressRes = await common_vendor.index.compressImage({
+              src: chooseImageList[i],
+              quality: 80
+            });
+            chooseImageList[i] = compressRes.tempFilePath;
+          }
+          that.memoryDetail.localPicPathList = localPicPathList.concat(chooseImageList);
+        }
+      } catch (e) {
+      }
+    },
+    inputMemoryContent(event) {
+      let that = this;
+      that.memoryDetail.content = event.target.value;
+    },
+    onClickAddMemoryBack() {
+      let that = this;
+      common_vendor.index.showModal({
+        title: "\u6E29\u99A8\u63D0\u793A",
+        content: "\u8FD4\u56DE\u4F1A\u6E05\u7A7A\u5F53\u524D\u6B63\u8BB0\u5F55\u7684\u56DE\u5FC6\u54E6",
+        success: (res) => {
+          if (res.confirm) {
+            that.memoryDetail = {};
+            that.isShowAddMemory = false;
+            that.isShowPopup = false;
+          }
+        }
+      });
+    },
+    onClickAddMemoryWrite() {
+      let that = this;
+      console.log("\u6DFB\u52A0\u7684\u56DE\u5FC6", that.memoryDetail);
     }
   }
 };
@@ -210,24 +274,42 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       };
     })
   } : {}, {
-    l: $data.memoryDetail.cloudRecordPath
-  }, $data.memoryDetail.cloudRecordPath ? {
-    m: common_vendor.t($data.memoryDetail.recordDuration),
-    n: common_vendor.o(($event) => _ctx.onClickPlayRecord($data.memoryDetail.cloudRecordPath)),
-    o: $data.isPlayRecord ? "../../static/img_paush_record_icon.png" : "../../static/img_play_record_icon.png"
-  } : {}, {
-    p: $data.memoryDetail.content
+    l: $data.memoryDetail.content
   }, $data.memoryDetail.content ? {
-    q: common_vendor.t($data.memoryDetail.content)
+    m: common_vendor.t($data.memoryDetail.content)
   } : {}, {
-    r: $data.memoryDetail.date
+    n: $data.memoryDetail.date
   }, $data.memoryDetail.date ? {
-    s: common_vendor.t($data.memoryDetail.date)
+    o: common_vendor.t($data.memoryDetail.date)
   } : {}, {
-    t: $data.memoryDetail.address && $data.memoryDetail.address !== " "
+    p: $data.memoryDetail.address && $data.memoryDetail.address !== " "
   }, $data.memoryDetail.address && $data.memoryDetail.address !== " " ? {
-    v: common_vendor.t($data.memoryDetail.address)
-  } : {}) : {});
+    q: common_vendor.t($data.memoryDetail.address)
+  } : {}) : {}, {
+    r: $data.isShowAddMemory === true
+  }, $data.isShowAddMemory === true ? common_vendor.e({
+    s: common_vendor.o((...args) => $options.inputMemoryTitle && $options.inputMemoryTitle(...args)),
+    t: $data.memoryDetail.localPicPathList.length > 0
+  }, $data.memoryDetail.localPicPathList.length > 0 ? {
+    v: common_vendor.f($data.memoryDetail.localPicPathList, (item, index, i0) => {
+      return {
+        a: item ? item : "../../static/img_empty_icon.png",
+        b: common_vendor.o(($event) => $options.onPreviewMemoryCellPic("local", index)),
+        c: common_vendor.o(($event) => $options.onClickDeletePic(index)),
+        d: common_vendor.s("margin-left:" + ((index + 1) % 5 === 1 ? "0rpx" : "10rpx") + ";margin-top:" + (index > 4 ? "5rpx" : "0rpx")),
+        e: index
+      };
+    })
+  } : {}, {
+    w: $data.memoryDetail.localPicPathList.length < 5
+  }, $data.memoryDetail.localPicPathList.length < 5 ? {
+    x: common_vendor.s("margin-left:" + ($data.memoryDetail.localPicPathList.length > 0 ? "10rpx" : "0rpx") + ";"),
+    y: common_vendor.o((...args) => $options.onClickAddPic && $options.onClickAddPic(...args))
+  } : {}, {
+    z: common_vendor.o((...args) => $options.inputMemoryContent && $options.inputMemoryContent(...args)),
+    A: common_vendor.o((...args) => $options.onClickAddMemoryBack && $options.onClickAddMemoryBack(...args)),
+    B: common_vendor.o((...args) => $options.onClickAddMemoryWrite && $options.onClickAddMemoryWrite(...args))
+  }) : {});
 }
 var MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__file", "C:/HBuilderX/projects/RecordLife/pages/memory/memory.vue"]]);
 wx.createPage(MiniProgramPage);

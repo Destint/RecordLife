@@ -44,7 +44,7 @@
 		<image class="image-icon-addMemory" src="../../static/img_add_icon.png" @click="onClickAddMemory"></image>
 		<block v-if="isShowMemoryDetail === true">
 			<view class="view-area-popupMask" @click="onClickMemoryDetailMask"></view>
-			<view class="view-box-memoryDetail">
+			<view class="view-box-memoryDetail" style="padding-bottom: 10rpx;">
 				<view class="view-box-memoryItem" style="margin-top: 20rpx;">
 					<image class="image-icon-basic" src="../../static/img_memory_detail_title_icon.png"
 						style="width: 32rpx;height: 32rpx;"></image>
@@ -63,21 +63,6 @@
 						</block>
 					</view>
 					<view class="view-line-divider"></view>
-				</block>
-				<block v-if="memoryDetail.cloudRecordPath">
-					<view class="view-box-memoryItem">
-						<image class="image-icon-basic" src="../../static/img_memory_detail_record_icon.png"
-							style="width: 32rpx;height: 32rpx;"></image>
-						<text class="text-content-GreenThirty" style="margin-left: 10rpx;">录音时长
-							{{memoryDetail.recordDuration}}</text>
-						<image class="image-icon-basic" style="width: 32rpx;height: 32rpx;margin-left: 30rpx;"
-							@click="onClickPlayRecord(memoryDetail.cloudRecordPath)"
-							:src="isPlayRecord ? '../../static/img_paush_record_icon.png' : '../../static/img_play_record_icon.png'">
-						</image>
-						<progress class="progress-bar-recordPlay" percent="{{playRecordProgress}}" stroke-width="3"
-							color="#10AEFF"></progress>
-						<view class="view-line-divider"></view>
-					</view>
 				</block>
 				<block v-if="memoryDetail.content">
 					<view class="view-box-memoryItem">
@@ -108,6 +93,52 @@
 				</block>
 			</view>
 		</block>
+		<block v-if="isShowAddMemory === true">
+			<view class="view-area-popupMask"></view>
+			<view class="view-box-memoryDetail">
+				<view class="view-box-memoryBoxTitle">记录回忆</view>
+				<view class="view-box-addMemoryTitle">
+					<input class="input-area-addMemoryTitle" maxlength="15" placeholder="回忆的标题..."
+						placeholder-style="color: rgba(70,123,115,0.5);" @input="inputMemoryTitle" />
+				</view>
+				<view class="view-box-localMemoryPicList">
+					<block v-if="memoryDetail.localPicPathList.length > 0">
+						<block v-for="(item, index) in memoryDetail.localPicPathList" :key="index">
+							<view class="view-box-localMemoryPic"
+								:style="'margin-left:' + ((index + 1) % 5 === 1 ? '0rpx' : '10rpx') + ';margin-top:' + (index > 4 ? '5rpx' : '0rpx')">
+								<image class="image-icon-basic" style="width: 100rpx;height: 100rpx;"
+									:src="item ? item : '../../static/img_empty_icon.png'"
+									@click="onPreviewMemoryCellPic('local',index)" mode="aspectFill"></image>
+								<image class="image-icon-deleteMemoryPic" src="../../static/img_delete_pic_icon.png"
+									@click.stop="onClickDeletePic(index)"></image>
+							</view>
+						</block>
+					</block>
+					<block v-if="memoryDetail.localPicPathList.length < 5">
+						<view class="view-box-addMemoryPic"
+							:style="'margin-left:' + (memoryDetail.localPicPathList.length > 0 ? '10rpx' : '0rpx') + ';'"
+							@click="onClickAddPic">
+							<image class="image-icon-basic" src="../../static/img_dotted_box_icon.png"
+								style="width: 100rpx;height: 100rpx;position: absolute;"></image>
+							<image class="image-icon-basic" src="../../static/img_add_picture_icon.png"
+								style="width: 40rpx;height: 40rpx;"></image>
+							<text>添加图片</text>
+						</view>
+					</block>
+				</view>
+				<view class="view-box-addMemoryContent">
+					<textarea class="textarea-area-inputMemoryContent" maxlength="2000" placeholder="回忆的内容..."
+						placeholder-style="color: rgba(70,123,115,0.5);" disable-default-padding="true"
+						cursor-spacing="30" @input="inputMemoryContent"></textarea>
+				</view>
+				<view class="view-box-addMemoryFunction">
+					<image class="image-icon-basic" style="width: 100rpx;height: 100rpx;"
+						src="../../static/img_add_memory_back_icon.png" @click="onClickAddMemoryBack"></image>
+					<image class="image-icon-basic" style="width: 100rpx;height: 100rpx;"
+						src="../../static/img_add_memory_write_icon.png" @click="onClickAddMemoryWrite"></image>
+				</view>
+			</view>
+		</block>
 	</view>
 </template>
 
@@ -128,8 +159,7 @@
 				isShowPopup: false,
 				memoryDetail: {},
 				isShowMemoryDetail: false,
-				isPlayRecord: false,
-				playRecordProgress: 0
+				isShowAddMemory: false
 			};
 		},
 		async onLoad() {
@@ -303,7 +333,15 @@
 			 * 点击添加回忆
 			 */
 			onClickAddMemory(): void {
-				console.log('点击添加回忆');
+				let that = this;
+
+				that.isShowPopup = true;
+				that.memoryDetail = {
+					title: '',
+					localPicPathList: [],
+					content: ''
+				};
+				that.isShowAddMemory = true;
 			},
 			/**
 			 * 点击回忆详情蒙版
@@ -319,7 +357,7 @@
 			 * 预览回忆单元的图片
 			 * @param {string} location 图片位置
 			 */
-			onPreviewMemoryCellPic(location, index): void {
+			onPreviewMemoryCellPic(location: string, index: number): void {
 				let that = this;
 
 				try {
@@ -338,6 +376,92 @@
 						urls: currentPicPathList
 					})
 				} catch (e) {}
+			},
+			/**
+			 * 监听输入的回忆标题
+			 * @param {object} event 输入对象
+			 */
+			inputMemoryTitle(event): void {
+				let that = this;
+
+				that.memoryDetail.title = event.target.value;
+			},
+			/**
+			 * 点击删除图片
+			 */
+			onClickDeletePic(index: number): void {
+				let that = this;
+
+				that.memoryDetail.localPicPathList.splice(index, 1);
+			},
+			/**
+			 * 点击添加图片
+			 */
+			async onClickAddPic(): Promise < void > {
+				let that = this;
+
+				try {
+					let localPicPathList = that.memoryDetail.localPicPathList;
+
+					if (localPicPathList.length >= 5) {
+						uni.showToast({
+							title: '图片最多记录5张',
+							icon: "none"
+						})
+					} else {
+						let imageRes: any = await uni.chooseImage({
+							count: 5 - localPicPathList.length,
+							sizeType: ['compressed'],
+							sourceType: ['album']
+						})
+
+						let chooseImageList: string[] = imageRes.tempFilePaths;
+						for (let i = 0; i < chooseImageList.length; i++) {
+							let compressRes: any = await uni.compressImage({
+								src: chooseImageList[i],
+								quality: 80
+							});
+
+							chooseImageList[i] = compressRes.tempFilePath;
+						}
+						that.memoryDetail.localPicPathList = localPicPathList.concat(chooseImageList);
+					}
+				} catch (e) {}
+			},
+			/**
+			 * 监听输入的回忆内容
+			 * @param {object} event 输入对象
+			 */
+			inputMemoryContent(event): void {
+				let that = this;
+
+				that.memoryDetail.content = event.target.value;
+			},
+			/**
+			 * 点击添加回忆的返回事件
+			 */
+			onClickAddMemoryBack(): void {
+				let that = this;
+
+				uni.showModal({
+					title: '温馨提示',
+					content: '返回会清空当前正记录的回忆哦',
+					success: (res) => {
+						if (res.confirm) {
+							that.memoryDetail = {};
+							that.isShowAddMemory = false;
+							that.isShowPopup = false;
+						}
+					}
+				})
+			},
+			/**
+			 * 点击添加回忆的记录事件
+			 */
+			onClickAddMemoryWrite(): void {
+				let that = this;
+
+				console.log('添加的回忆', that.memoryDetail);
 			}
 		}
 	}
@@ -489,7 +613,6 @@
 		transform: translateY(-50%);
 		background-color: #FBF2E3;
 		border-radius: 30rpx;
-		padding-bottom: 10rpx;
 	}
 
 	.view-box-memoryItem {
@@ -506,17 +629,97 @@
 		height: 1rpx;
 	}
 
-	.progress-bar-recordPlay {
-		position: relative;
-		margin-left: 20rpx;
-		width: 200rpx;
-	}
-
 	.scrollView-area-memoryContent {
 		position: relative;
 		color: #467B73;
 		font-size: 30rpx;
 		margin-left: 10rpx;
 		max-height: 300rpx;
+	}
+
+	.view-box-memoryBoxTitle {
+		position: relative;
+		margin: 10rpx 35rpx 0rpx 35rpx;
+		display: flex;
+		justify-content: center;
+		font-size: 30rpx;
+		color: #467B73;
+	}
+
+	.view-box-addMemoryTitle {
+		position: relative;
+		margin: 5rpx 35rpx 0rpx 35rpx;
+		border-bottom: 1rpx solid #467B73;
+		display: flex;
+		align-items: center;
+		padding-bottom: 10rpx;
+	}
+
+	.input-area-addMemoryTitle {
+		position: relative;
+		font-size: 30rpx;
+		width: 100%;
+		color: #467B73;
+	}
+
+	.view-box-localMemoryPicList {
+		position: relative;
+		margin: 10rpx 35rpx 0rpx 35rpx;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		padding-bottom: 10rpx;
+		border-bottom: 1rpx solid #467B73;
+		overflow-wrap: break-word;
+	}
+
+	.view-box-localMemoryPic {
+		position: relative;
+		width: 100rpx;
+		height: 100rpx;
+	}
+
+	.image-icon-deleteMemoryPic {
+		position: absolute;
+		width: 32rpx;
+		height: 32rpx;
+		right: 0rpx;
+		top: 0rpx;
+		flex-shrink: 0;
+	}
+
+	.view-box-addMemoryPic {
+		position: relative;
+		width: 100rpx;
+		height: 100rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-direction: column;
+		font-size: 20rpx;
+		color: #467B73;
+	}
+
+	.view-box-addMemoryContent {
+		position: relative;
+		margin: 10rpx 35rpx 0rpx 35rpx;
+		border-bottom: 1rpx solid #467B73;
+	}
+
+	.textarea-area-inputMemoryContent {
+		position: relative;
+		font-size: 30rpx;
+		width: 100%;
+		height: 250rpx;
+		color: #467B73;
+		padding-bottom: 10rpx;
+	}
+
+	.view-box-addMemoryFunction {
+		position: relative;
+		margin: 20rpx 55rpx 20rpx 55rpx;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
 	}
 </style>
