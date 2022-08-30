@@ -36,12 +36,19 @@ module.exports = {
 				fileList: cloudPicPathList
 			});
 			memoryList.splice(deleteIndex, 1);
-			await dbJQL
-				.collection('memory')
-				.where("wx_openid == '" + openid + "'")
-				.update({
-					'memoryList': memoryList
-				})
+			if (memoryList.length !== 0) {
+				await dbJQL
+					.collection('memory')
+					.where("wx_openid == '" + openid + "'")
+					.update({
+						'memoryList': memoryList
+					})
+			} else {
+				await dbJQL
+					.collection('memory')
+					.where("wx_openid == '" + openid + "'")
+					.remove()
+			}
 
 			return {
 				errCode: 0,

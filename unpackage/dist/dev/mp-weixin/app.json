@@ -16,6 +16,5 @@
     "startLocationUpdate",
     "onLocationChange"
   ],
-  "usingComponents": {},
-  "sitemapLocation": "sitemap.json"
+  "usingComponents": {}
 }

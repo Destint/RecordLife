@@ -497,7 +497,6 @@ const _sfc_main = {
                 mask: true
               });
               let result = await handleMemory.deleteMemory(app.globalData.wx_openid, memory.id);
-              console.log("\u5220\u9664\u56DE\u5FC6\u6210\u529F", result);
               if (result.errCode === 0) {
                 that.memoryList = result.data.memoryList.slice(0, 15);
                 that.memorySum = result.data.memoryList.length;
@@ -519,7 +518,6 @@ const _sfc_main = {
           }
         });
       } catch (e) {
-        console.log("\u5220\u9664\u5931\u8D25", e);
       }
     }
   }
