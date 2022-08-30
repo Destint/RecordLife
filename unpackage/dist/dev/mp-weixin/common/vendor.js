@@ -6510,7 +6510,7 @@ switch (f) {
   default:
     g = f;
 }
-const p = h('{\n    "address": [\n        "127.0.0.1",\n        "192.168.109.56"\n    ],\n    "debugPort": 50799,\n    "initialLaunchType": "local",\n    "servePort": 50800,\n    "skipFiles": [\n        "<node_internals>/**/*.js",\n        "C:/HBuilderX/HBuilderX/plugins/unicloud/**/*.js"\n    ]\n}\n'), m = h('[{"provider":"aliyun","spaceName":"record-life","spaceId":"bcf64df9-4d03-4023-bc85-9000afa0f691","clientSecret":"7OHDBYncGIzdkVKmRsWQxg==","endpoint":"https://api.bspapp.com"}]');
+const p = h('{\n    "address": [\n        "127.0.0.1",\n        "192.168.109.56"\n    ],\n    "debugPort": 49874,\n    "initialLaunchType": "local",\n    "servePort": 49875,\n    "skipFiles": [\n        "<node_internals>/**/*.js",\n        "C:/HBuilderX/HBuilderX/plugins/unicloud/**/*.js"\n    ]\n}\n'), m = h('[{"provider":"aliyun","spaceName":"record-life","spaceId":"bcf64df9-4d03-4023-bc85-9000afa0f691","clientSecret":"7OHDBYncGIzdkVKmRsWQxg==","endpoint":"https://api.bspapp.com"}]');
 let _ = "";
 try {
   _ = "__UNI__643D500";

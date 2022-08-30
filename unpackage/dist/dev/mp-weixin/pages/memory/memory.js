@@ -1,9 +1,19 @@
 "use strict";
 var common_vendor = require("../../common/vendor.js");
 var common_commonFunctions = require("../../common/commonFunctions.js");
-const serverDate = common_vendor.rn.importObject("serverDate");
+var common_qqmapWxJssdk = require("../../common/qqmap-wx-jssdk.js");
+const locationManager = new common_qqmapWxJssdk.QQMapWX({
+  key: "3XKBZ-WP4CG-KQVQM-IJ2WK-7QAE7-2ZFKZ"
+});
+const serverDate = common_vendor.rn.importObject("serverDate", {
+  customUI: true
+});
+const handleMemory = common_vendor.rn.importObject("handleMemory", {
+  customUI: true
+});
 const db = common_vendor.rn.database();
 const app = getApp();
+var isWritingMemory = false;
 const _sfc_main = {
   data() {
     return {
@@ -24,6 +34,7 @@ const _sfc_main = {
     });
     if (!app.globalData.wx_openid)
       await common_commonFunctions.commonFunctions.wxLogin();
+    that.uploadAccessToCloud(app.globalData.wx_openid);
     that.getNoticeFromCloud();
     await that.getMemoryFromCloud(app.globalData.wx_openid, 0);
     common_vendor.index.hideLoading();
@@ -131,8 +142,19 @@ const _sfc_main = {
       that.isShowMemoryDetail = true;
     },
     onClickEditorMemory(memory) {
-      console.log("\u70B9\u7F16\u8F91\u7684\u56DE\u5FC6\u5185\u5BB9", memory);
-      console.log("\u70B9\u51FB\u7F16\u8F91\u7684\u56DE\u5FC6id", memory.id);
+      let that = this;
+      try {
+        common_vendor.index.showActionSheet({
+          itemList: ["\u5220\u9664\u8BE5\u56DE\u5FC6"],
+          success: (res) => {
+            if (res.tapIndex === 0)
+              that.deleteMemory(memory);
+          },
+          fail: () => {
+          }
+        });
+      } catch (e) {
+      }
     },
     onClickAddMemory() {
       let that = this;
@@ -140,7 +162,12 @@ const _sfc_main = {
       that.memoryDetail = {
         title: "",
         localPicPathList: [],
-        content: ""
+        cloudPicPathList: [],
+        content: "",
+        address: "",
+        simpleAddress: "",
+        id: 0,
+        date: ""
       };
       that.isShowAddMemory = true;
     },
@@ -225,7 +252,275 @@ const _sfc_main = {
     },
     onClickAddMemoryWrite() {
       let that = this;
-      console.log("\u6DFB\u52A0\u7684\u56DE\u5FC6", that.memoryDetail);
+      try {
+        let addMemory = that.memoryDetail;
+        if (addMemory.title === "") {
+          common_vendor.index.showToast({
+            title: "\u56DE\u5FC6\u6807\u9898\u4E0D\u80FD\u4E3A\u7A7A",
+            icon: "none"
+          });
+          return;
+        }
+        if (isWritingMemory === true)
+          return;
+        isWritingMemory = true;
+        common_vendor.index.showModal({
+          title: "\u6E29\u99A8\u63D0\u793A",
+          content: "\u662F\u5426\u8BB0\u5F55\u5F53\u524D\u56DE\u5FC6",
+          success: async (res) => {
+            if (res.confirm) {
+              let checkContent = addMemory.title + addMemory.content;
+              common_vendor.index.showLoading({
+                title: "\u8BB0\u5F55\u4E2D...",
+                mask: true
+              });
+              let checkContentResult = await common_commonFunctions.commonFunctions.checkContentSecurity(checkContent);
+              if (checkContentResult.errCode !== 0) {
+                common_vendor.index.hideLoading();
+                common_vendor.index.showModal({
+                  title: "\u6E29\u99A8\u63D0\u793A",
+                  content: checkContentResult.errMsg,
+                  showCancel: false,
+                  success: () => {
+                    isWritingMemory = false;
+                  }
+                });
+              } else {
+                await that.startWriteMemory();
+              }
+            }
+            if (res.cancel) {
+              isWritingMemory = false;
+            }
+          }
+        });
+      } catch (e) {
+        common_vendor.index.showModal({
+          title: "\u6E29\u99A8\u63D0\u793A",
+          content: "\u8BB0\u5F55\u56DE\u5FC6\u5931\u8D25\u8BF7\u91CD\u8BD5",
+          showCancel: false,
+          success: (res) => {
+            if (res.confirm) {
+              isWritingMemory = false;
+            }
+          }
+        });
+      }
+    },
+    async startWriteMemory() {
+      let that = this;
+      try {
+        await that.getCurrentAddressInfo();
+        await that.setMemoryIdAndDate();
+        await that.uploadLocalFileToCloud();
+        await that.uploadMemoryToCloud();
+        that.memoryDetail = {};
+        that.isShowAddMemory = false;
+        that.isShowPopup = false;
+        isWritingMemory = false;
+        common_vendor.index.hideLoading();
+        common_vendor.index.showToast({
+          title: "\u8BB0\u5F55\u6210\u529F",
+          icon: "none"
+        });
+      } catch (e) {
+        common_vendor.index.hideLoading();
+        common_vendor.index.showModal({
+          title: "\u6E29\u99A8\u63D0\u793A",
+          content: "\u8BB0\u5F55\u56DE\u5FC6\u5931\u8D25\uFF0C\u8BF7\u91CD\u8BD5",
+          showCancel: false,
+          success: () => {
+            isWritingMemory = false;
+          }
+        });
+      }
+    },
+    async getCurrentAddressInfo() {
+      let that = this;
+      try {
+        let p = new Promise((resolve) => {
+          wx.startLocationUpdate({
+            success: () => {
+              wx.onLocationChange(async (res) => {
+                wx.offLocationChange();
+                wx.stopLocationUpdate();
+                await that.getCurrentLocation(res.latitude, res.longitude);
+                resolve(true);
+              });
+            },
+            fail: (e) => {
+              resolve(true);
+            }
+          });
+        });
+        await p;
+      } catch (e) {
+      }
+    },
+    async getCurrentLocation(latitude, longitude) {
+      let that = this;
+      try {
+        let p = new Promise((resolve) => {
+          locationManager.reverseGeocoder({
+            location: {
+              latitude,
+              longitude
+            },
+            success: async (res) => {
+              if (res && res.result) {
+                let address = res.result.address ? res.result.address : "";
+                let city = res.result.ad_info.city ? res.result.ad_info.city : "";
+                let district = res.result.ad_info.district ? res.result.ad_info.district : "";
+                let simpleAddress = district ? district : city;
+                await that.getCurrentWeather(simpleAddress, address);
+              }
+              resolve(true);
+            },
+            fail: () => {
+              resolve(true);
+            }
+          });
+        });
+        await p;
+      } catch (e) {
+      }
+    },
+    async getCurrentWeather(simpleAddress, address) {
+      let that = this;
+      try {
+        let p = new Promise((resolve) => {
+          common_vendor.index.request({
+            url: "https://free-api.heweather.net/s6/weather/now",
+            data: {
+              location: simpleAddress,
+              key: "2ce65b27e7784d0f85ecd7b8127f5e2d"
+            },
+            success: (res) => {
+              let weather = res.data.HeWeather6[0].now.cond_txt;
+              let temperature = res.data.HeWeather6[0].now.fl + "\u2103";
+              that.memoryDetail.address = address + " " + weather + " " + temperature;
+              that.memoryDetail.simpleAddress = simpleAddress + " " + weather + " " + temperature;
+              resolve(true);
+            },
+            fail: () => {
+              resolve(true);
+            }
+          });
+        });
+        await p;
+      } catch (e) {
+      }
+    },
+    async setMemoryIdAndDate() {
+      let that = this;
+      try {
+        let currentDateInfo = await serverDate.getCurrentDate();
+        if (currentDateInfo.errCode === 0) {
+          that.memoryDetail.id = currentDateInfo.data.currentId;
+          that.memoryDetail.date = currentDateInfo.data.currentDate;
+        }
+      } catch (e) {
+      }
+    },
+    async uploadLocalFileToCloud() {
+      let that = this;
+      try {
+        if (that.memoryDetail.localPicPathList.length === 0)
+          return;
+        let currentId = that.memoryDetail.id;
+        let localPicPathList = that.memoryDetail.localPicPathList;
+        let proArr = [];
+        for (let i = 0; i < localPicPathList.length; i++) {
+          proArr.push(new Promise((resolve) => {
+            common_vendor.rn.uploadFile({
+              filePath: localPicPathList[i],
+              cloudPath: app.globalData.wx_openid + "." + currentId + i + ".jpg"
+            }).then((res) => {
+              that.memoryDetail.cloudPicPathList[i] = res.fileID;
+              resolve(true);
+            }).catch((err) => {
+              that.memoryDetail.cloudPicPathList[i] = "";
+              resolve(true);
+            });
+          }));
+        }
+        await Promise.all(proArr).then(() => {
+        }).catch(() => {
+        });
+      } catch (e) {
+      }
+    },
+    async uploadMemoryToCloud() {
+      let that = this;
+      try {
+        await db.collection("memory").where("wx_openid == '" + app.globalData.wx_openid + "'").get().then(async (res) => {
+          if (res.result.errCode === 0) {
+            let memoryList = res.result.data[0] ? res.result.data[0].memoryList : [];
+            memoryList.unshift(that.memoryDetail);
+            if (res.result.data.length === 0) {
+              await db.collection("memory").add({
+                "wx_openid": app.globalData.wx_openid,
+                "memoryList": memoryList
+              }).then(() => {
+                that.memoryList = memoryList.slice(0, 15);
+                that.memorySum = memoryList.length;
+                common_vendor.index.setStorageSync(app.globalData.memoryCacheName, memoryList.slice(0, 15));
+                common_vendor.index.setStorageSync(app.globalData.memorySumCacheName, memoryList.length);
+              }).catch();
+            } else {
+              await db.collection("memory").where("wx_openid == '" + app.globalData.wx_openid + "'").update({
+                "memoryList": memoryList
+              }).then(() => {
+                that.memoryList = memoryList.slice(0, 15);
+                that.memorySum = memoryList.length;
+                common_vendor.index.setStorageSync(app.globalData.memoryCacheName, memoryList.slice(0, 15));
+                common_vendor.index.setStorageSync(app.globalData.memorySumCacheName, memoryList.length);
+              }).catch();
+            }
+          }
+        }).catch();
+      } catch (e) {
+      }
+    },
+    deleteMemory(memory) {
+      if (!memory)
+        return;
+      try {
+        let that = this;
+        common_vendor.index.showModal({
+          title: "\u6E29\u99A8\u63D0\u793A",
+          content: "\u662F\u5426\u5220\u9664\u56DE\u5FC6\u300A" + memory.title + "\u300B",
+          success: async (res) => {
+            if (res.confirm) {
+              common_vendor.index.showLoading({
+                title: "\u5220\u9664\u4E2D...",
+                mask: true
+              });
+              let result = await handleMemory.deleteMemory(app.globalData.wx_openid, memory.id);
+              console.log("\u5220\u9664\u56DE\u5FC6\u6210\u529F", result);
+              if (result.errCode === 0) {
+                that.memoryList = result.data.memoryList.slice(0, 15);
+                that.memorySum = result.data.memoryList.length;
+                common_vendor.index.setStorageSync(app.globalData.memoryCacheName, result.data.memoryList.slice(0, 15));
+                common_vendor.index.setStorageSync(app.globalData.memorySumCacheName, result.data.memoryList.length);
+                common_vendor.index.hideLoading();
+                common_vendor.index.showToast({
+                  title: "\u5220\u9664\u6210\u529F",
+                  icon: "none"
+                });
+              } else {
+                common_vendor.index.hideLoading();
+                common_vendor.index.showToast({
+                  title: "\u5220\u9664\u5931\u8D25",
+                  icon: "none"
+                });
+              }
+            }
+          }
+        });
+      } catch (e) {
+        console.log("\u5220\u9664\u5931\u8D25", e);
+      }
     }
   }
 };

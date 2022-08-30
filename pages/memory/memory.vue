@@ -144,9 +144,19 @@
 
 <script lang="ts">
 	import commonFunctions from "../../common/commonFunctions.js";
-	const serverDate = uniCloud.importObject('serverDate');
-	const db = uniCloud.database();
-	const app = getApp();
+	import locationSDK from "../../common/qqmap-wx-jssdk.js";
+	const locationManager = new locationSDK({
+		key: '3XKBZ-WP4CG-KQVQM-IJ2WK-7QAE7-2ZFKZ'
+	}); // 位置管理器
+	const serverDate = uniCloud.importObject('serverDate', {
+		customUI: true
+	}); // 服务器时间云对象
+	const handleMemory = uniCloud.importObject('handleMemory', {
+		customUI: true
+	}); // 处理回忆云对象
+	const db = uniCloud.database(); // 云数据库
+	const app = getApp(); // APP全局变量
+	var isWritingMemory = false; // 是否正在记录回忆
 	export default {
 		data() {
 			return {
@@ -170,7 +180,7 @@
 				mask: true
 			})
 			if (!app.globalData.wx_openid) await commonFunctions.wxLogin();
-			// that.uploadAccessToCloud(app.globalData.wx_openid);
+			that.uploadAccessToCloud(app.globalData.wx_openid);
 			that.getNoticeFromCloud();
 			await that.getMemoryFromCloud(app.globalData.wx_openid, 0);
 			uni.hideLoading();
@@ -326,8 +336,17 @@
 			 * @param {object} memory 回忆
 			 */
 			onClickEditorMemory(memory: AnyObject): void {
-				console.log('点编辑的回忆内容', memory);
-				console.log('点击编辑的回忆id', memory.id);
+				let that = this;
+
+				try {
+					uni.showActionSheet({
+						itemList: ['删除该回忆'],
+						success: (res) => {
+							if (res.tapIndex === 0) that.deleteMemory(memory);
+						},
+						fail: () => {}
+					})
+				} catch (e) {}
 			},
 			/**
 			 * 点击添加回忆
@@ -339,7 +358,12 @@
 				that.memoryDetail = {
 					title: '',
 					localPicPathList: [],
-					content: ''
+					cloudPicPathList: [],
+					content: '',
+					address: '',
+					simpleAddress: '',
+					id: 0,
+					date: ''
 				};
 				that.isShowAddMemory = true;
 			},
@@ -461,7 +485,344 @@
 			onClickAddMemoryWrite(): void {
 				let that = this;
 
-				console.log('添加的回忆', that.memoryDetail);
+				try {
+					let addMemory: AnyObject = that.memoryDetail;
+					if (addMemory.title === '') {
+						uni.showToast({
+							title: '回忆标题不能为空',
+							icon: "none"
+						})
+
+						return;
+					}
+					if (isWritingMemory === true) return;
+					isWritingMemory = true;
+					uni.showModal({
+						title: '温馨提示',
+						content: '是否记录当前回忆',
+						success: async (res) => {
+							if (res.confirm) {
+								let checkContent: string = addMemory.title + addMemory.content;
+
+								uni.showLoading({
+									title: '记录中...',
+									mask: true
+								})
+								let checkContentResult = await commonFunctions.checkContentSecurity(
+									checkContent);
+
+								if (checkContentResult.errCode !== 0) {
+									uni.hideLoading();
+									uni.showModal({
+										title: '温馨提示',
+										content: checkContentResult.errMsg,
+										showCancel: false,
+										success: () => {
+											isWritingMemory = false;
+										}
+									})
+								} else {
+									await that.startWriteMemory();
+								}
+							}
+							if (res.cancel) {
+								isWritingMemory = false;
+							}
+						}
+					})
+				} catch (e) {
+					uni.showModal({
+						title: '温馨提示',
+						content: '记录回忆失败请重试',
+						showCancel: false,
+						success: (res) => {
+							if (res.confirm) {
+								isWritingMemory = false;
+							}
+						}
+					})
+				}
+			},
+			/**
+			 * 开始记录回忆
+			 */
+			async startWriteMemory(): Promise < void > {
+				let that = this;
+
+				try {
+					await that.getCurrentAddressInfo();
+					await that.setMemoryIdAndDate();
+					await that.uploadLocalFileToCloud();
+					await that.uploadMemoryToCloud();
+					that.memoryDetail = {};
+					that.isShowAddMemory = false;
+					that.isShowPopup = false;
+					isWritingMemory = false;
+					uni.hideLoading();
+					uni.showToast({
+						title: '记录成功',
+						icon: "none"
+					})
+				} catch (e) {
+					uni.hideLoading();
+					uni.showModal({
+						title: '温馨提示',
+						content: '记录回忆失败，请重试',
+						showCancel: false,
+						success: () => {
+							isWritingMemory = false;
+						}
+					})
+				}
+			},
+			/**
+			 * 获取当前位置信息
+			 */
+			async getCurrentAddressInfo(): Promise < void > {
+				let that = this;
+
+				try {
+					let p: Promise < boolean > = new Promise((resolve) => {
+						wx.startLocationUpdate({
+							success: () => {
+								wx.onLocationChange(async (res) => {
+									wx.offLocationChange();
+									wx.stopLocationUpdate();
+									await that.getCurrentLocation(res.latitude, res
+										.longitude);
+									resolve(true);
+								})
+							},
+							fail: (e) => {
+								resolve(true)
+							}
+						})
+					})
+
+					await p;
+				} catch (e) {}
+			},
+			/**
+			 * 根据经纬度获取当前位置信息
+			 * @param latitude 纬度
+			 * @param longitude 经度
+			 */
+			async getCurrentLocation(latitude: number, longitude: number): Promise < void > {
+				let that = this;
+
+				try {
+					let p: Promise < boolean > = new Promise((resolve) => {
+						locationManager.reverseGeocoder({
+							location: {
+								latitude: latitude,
+								longitude: longitude
+							},
+							success: async (res) => {
+								if (res && res.result) {
+									let address: string = res.result.address ? res.result.address :
+										''; // 详细地址
+									let city: string = res.result.ad_info.city ? res.result.ad_info
+										.city : ''; // 城市
+									let district: string = res.result.ad_info.district ? res.result
+										.ad_info.district : ''; // 区
+									let simpleAddress: string = district ? district : city; // 简易地址
+
+									await that.getCurrentWeather(simpleAddress, address);
+								}
+								resolve(true);
+							},
+							fail: () => {
+								resolve(true);
+							}
+						})
+					});
+
+					await p;
+				} catch (e) {}
+			},
+			/**
+			 * 根据地址获取天气信息
+			 * @param simpleAddress 简易地址
+			 * @param address 详细地址
+			 */
+			async getCurrentWeather(simpleAddress: string, address: string): Promise < void > {
+				let that = this;
+
+				try {
+					let p: Promise < boolean > = new Promise((resolve) => {
+						uni.request({
+							url: 'https://free-api.heweather.net/s6/weather/now',
+							data: {
+								location: simpleAddress,
+								key: "2ce65b27e7784d0f85ecd7b8127f5e2d"
+							},
+							success: (res: any) => {
+								let weather: string = res.data.HeWeather6[0].now.cond_txt;
+								let temperature: string = res.data.HeWeather6[0].now.fl + '℃';
+
+								that.memoryDetail.address = address + ' ' + weather + ' ' +
+									temperature;
+								that.memoryDetail.simpleAddress = simpleAddress + ' ' + weather +
+									' ' + temperature;
+								resolve(true);
+							},
+							fail: () => {
+								resolve(true);
+							}
+						})
+					});
+
+					await p;
+				} catch (e) {}
+			},
+			/**
+			 * 设置本次回忆的日期和ID
+			 */
+			async setMemoryIdAndDate(): Promise < void > {
+				let that = this;
+
+				try {
+					let currentDateInfo = await serverDate.getCurrentDate();
+
+					if (currentDateInfo.errCode === 0) {
+						that.memoryDetail.id = currentDateInfo.data.currentId;
+						that.memoryDetail.date = currentDateInfo.data.currentDate;
+					}
+				} catch (e) {}
+			},
+			/**
+			 * 上传本地文件到云端
+			 */
+			async uploadLocalFileToCloud(): Promise < void > {
+				let that = this;
+
+				try {
+					if (that.memoryDetail.localPicPathList.length === 0) return;
+
+					let currentId: number = that.memoryDetail.id;
+					let localPicPathList: string[] = that.memoryDetail.localPicPathList;
+					let proArr: Promise < boolean > [] = [];
+
+					for (let i = 0; i < localPicPathList.length; i++) {
+						proArr.push(new Promise((resolve) => {
+							uniCloud.uploadFile({
+								filePath: localPicPathList[i],
+								cloudPath: app.globalData.wx_openid + '.' + currentId + i + '.jpg'
+							}).then((res) => {
+								that.memoryDetail.cloudPicPathList[i] = res.fileID;
+								resolve(true);
+							}).catch((err) => {
+								that.memoryDetail.cloudPicPathList[i] = '';
+								resolve(true);
+							})
+						}))
+					}
+
+					await Promise.all(proArr).then(() => {}).catch(() => {})
+				} catch (e) {}
+			},
+			/**
+			 * 上传回忆到云端
+			 */
+			async uploadMemoryToCloud(): Promise < void > {
+				let that = this;
+
+				try {
+					await db
+						.collection('memory')
+						.where("wx_openid == '" + app.globalData.wx_openid + "'")
+						.get()
+						.then(async (res) => {
+							if (res.result.errCode === 0) {
+								let memoryList: AnyObject[] = res.result.data[0] ? res.result.data[0]
+									.memoryList : [];
+
+								memoryList.unshift(that.memoryDetail);
+								if (res.result.data.length === 0) {
+									await db
+										.collection('memory')
+										.add({
+											'wx_openid': app.globalData.wx_openid,
+											'memoryList': memoryList
+										})
+										.then(() => {
+											that.memoryList = memoryList.slice(0, 15);
+											that.memorySum = memoryList.length;
+											uni.setStorageSync(app.globalData.memoryCacheName,
+												memoryList.slice(0, 15));
+											uni.setStorageSync(app.globalData.memorySumCacheName,
+												memoryList.length);
+										})
+										.catch()
+								} else {
+									await db
+										.collection('memory')
+										.where("wx_openid == '" + app.globalData.wx_openid + "'")
+										.update({
+											'memoryList': memoryList
+										})
+										.then(() => {
+											that.memoryList = memoryList.slice(0, 15);
+											that.memorySum = memoryList.length;
+											uni.setStorageSync(app.globalData.memoryCacheName,
+												memoryList.slice(0, 15));
+											uni.setStorageSync(app.globalData.memorySumCacheName,
+												memoryList.length);
+										})
+										.catch()
+								}
+							}
+						})
+						.catch()
+				} catch (e) {}
+			},
+			/**
+			 * 删除回忆
+			 * @param memory {object} 删除的回忆
+			 * 
+			 */
+			deleteMemory(memory: AnyObject): void {
+				if (!memory) return;
+
+				try {
+					let that = this;
+
+					uni.showModal({
+						title: '温馨提示',
+						content: '是否删除回忆《' + memory.title + '》',
+						success: async (res) => {
+							if (res.confirm) {
+								uni.showLoading({
+									title: '删除中...',
+									mask: true
+								})
+								let result: AnyObject = await handleMemory.deleteMemory(app.globalData
+									.wx_openid,
+									memory.id);
+
+								if (result.errCode === 0) {
+									that.memoryList = result.data.memoryList.slice(0, 15);
+									that.memorySum = result.data.memoryList.length;
+									uni.setStorageSync(app.globalData.memoryCacheName,
+										result.data.memoryList.slice(0, 15));
+									uni.setStorageSync(app.globalData.memorySumCacheName,
+										result.data.memoryList.length);
+									uni.hideLoading();
+									uni.showToast({
+										title: '删除成功',
+										icon: "none"
+									})
+								} else {
+									uni.hideLoading();
+									uni.showToast({
+										title: '删除失败',
+										icon: "none"
+									})
+								}
+							}
+						}
+					})
+				} catch (e) {}
 			}
 		}
 	}

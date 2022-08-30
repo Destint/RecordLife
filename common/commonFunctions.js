@@ -1,4 +1,6 @@
-const wxCloudFunctions = uniCloud.importObject('wxCloudFunctions'); // 微信云函数对象
+const wxCloudFunctions = uniCloud.importObject('wxCloudFunctions', {
+	customUI: true
+}); // 微信云函数对象
 const db = uniCloud.database(); // 云数据库
 const app = getApp();
 /**
@@ -57,8 +59,52 @@ const wxLogin = async () => {
 				.catch()
 		}
 	} catch (e) {}
+};
+/**
+ * 检测文本内容安全性
+ * @param {string} content 需要检测的文本内容
+ */
+const checkContentSecurity = async (content) => {
+	try {
+		const getTokenRes = await wxCloudFunctions.getAccessToken();
+
+		if (getTokenRes.errCode !== 0) {
+			return {
+				errCode: -1,
+				errMsg: 'Token获取失败'
+			}
+		}
+		const contentSecurityRes = await wxCloudFunctions.msgSecCheck(getTokenRes.data.access_token, app
+			.globalData
+			.wx_openid, content);
+
+		if (contentSecurityRes.errCode !== 0) {
+			return {
+				errCode: -1,
+				errMsg: '内容合规检测失败'
+			}
+		}
+		if (contentSecurityRes.data.result.suggest !== 'pass') {
+			return {
+				errCode: -1,
+				errMsg: '内容存在违规信息'
+			}
+		}
+
+		return {
+			errCode: 0,
+			errMsg: '检测完成'
+		}
+
+	} catch (e) {
+		return {
+			errCode: -1,
+			errMsg: '内容合规检测失败'
+		}
+	}
 }
 
 export default {
-	wxLogin
+	wxLogin,
+	checkContentSecurity
 }
