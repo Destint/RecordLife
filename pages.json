@@ -1,18 +1,39 @@
 {
-	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
-		{
-			"path": "pages/memory/memory",
-			"style": {
-				"navigationBarTitleText": "回忆",
-				"onReachBottomDistance": 100,
-				"enablePullDownRefresh": true
-			}
+	"pages": [{
+		"path": "pages/memory/memory",
+		"style": {
+			"navigationBarTitleText": "回忆",
+			"onReachBottomDistance": 100,
+			"enablePullDownRefresh": true
 		}
-	],
+	}, {
+		"path": "pages/mine/mine",
+		"style": {
+			"navigationBarTitleText": "我的"
+		}
+
+	}],
 	"globalStyle": {
 		"backgroundTextStyle": "dark",
 		"navigationBarBackgroundColor": "#467B73",
 		"navigationBarTextStyle": "white"
+	},
+	"tabBar": {
+		"color": "#9BAAAC",
+		"selectedColor": "#467B73",
+		"list": [{
+				"pagePath": "pages/memory/memory",
+				"text": "回忆",
+				"iconPath": "static/img_memory_normal_icon.png",
+				"selectedIconPath": "static/img_memory_highlight_icon.png"
+			},
+			{
+				"pagePath": "pages/mine/mine",
+				"text": "我的",
+				"iconPath": "static/img_mine_normal_icon.png",
+				"selectedIconPath": "static/img_mine_highlight_icon.png"
+			}
+		]
 	},
 	"uniIdRouter": {}
 }

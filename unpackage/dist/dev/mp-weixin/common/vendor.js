@@ -6271,6 +6271,12 @@ const pages = [
       onReachBottomDistance: 100,
       enablePullDownRefresh: true
     }
+  },
+  {
+    path: "pages/mine/mine",
+    style: {
+      navigationBarTitleText: "\u6211\u7684"
+    }
   }
 ];
 const globalStyle = {
@@ -6278,10 +6284,29 @@ const globalStyle = {
   navigationBarBackgroundColor: "#467B73",
   navigationBarTextStyle: "white"
 };
+const tabBar = {
+  color: "#9BAAAC",
+  selectedColor: "#467B73",
+  list: [
+    {
+      pagePath: "pages/memory/memory",
+      text: "\u56DE\u5FC6",
+      iconPath: "static/img_memory_normal_icon.png",
+      selectedIconPath: "static/img_memory_highlight_icon.png"
+    },
+    {
+      pagePath: "pages/mine/mine",
+      text: "\u6211\u7684",
+      iconPath: "static/img_mine_normal_icon.png",
+      selectedIconPath: "static/img_mine_highlight_icon.png"
+    }
+  ]
+};
 const uniIdRouter = {};
 var t = {
   pages,
   globalStyle,
+  tabBar,
   uniIdRouter
 };
 function n(e2) {
@@ -6510,7 +6535,7 @@ switch (f) {
   default:
     g = f;
 }
-const p = h('{\n    "address": [\n        "127.0.0.1",\n        "192.168.109.56"\n    ],\n    "debugPort": 54509,\n    "initialLaunchType": "local",\n    "servePort": 54510,\n    "skipFiles": [\n        "<node_internals>/**/*.js",\n        "C:/HBuilderX/HBuilderX/plugins/unicloud/**/*.js"\n    ]\n}\n'), m = h('[{"provider":"aliyun","spaceName":"record-life","spaceId":"bcf64df9-4d03-4023-bc85-9000afa0f691","clientSecret":"7OHDBYncGIzdkVKmRsWQxg==","endpoint":"https://api.bspapp.com"}]');
+const p = h('{\n    "address": [\n        "127.0.0.1",\n        "192.168.109.56"\n    ],\n    "debugPort": 61004,\n    "initialLaunchType": "local",\n    "servePort": 61005,\n    "skipFiles": [\n        "<node_internals>/**/*.js",\n        "C:/HBuilderX/HBuilderX/plugins/unicloud/**/*.js"\n    ]\n}\n'), m = h('[{"provider":"aliyun","spaceName":"record-life","spaceId":"bcf64df9-4d03-4023-bc85-9000afa0f691","clientSecret":"7OHDBYncGIzdkVKmRsWQxg==","endpoint":"https://api.bspapp.com"}]');
 let _ = "";
 try {
   _ = "__UNI__643D500";

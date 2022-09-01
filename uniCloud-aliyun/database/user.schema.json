@@ -15,6 +15,18 @@
 		"wx_openid": {
 			"description": "微信登录的openid",
 			"bsonType": "string"
+		},
+		"role": {
+			"description": "用户角色",
+			"bsonType": "string"
+		},
+		"avatar": {
+			"description": "用户头像",
+			"bsonType": "string"
+		},
+		"nickname": {
+			"description": "用户昵称",
+			"bsonType": "string"
 		}
 	}
 }

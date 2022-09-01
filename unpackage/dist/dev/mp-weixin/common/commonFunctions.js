@@ -31,7 +31,10 @@ const wxLogin = async () => {
         if (res.result.errCode === 0) {
           if (res.result.data.length === 0) {
             await db.collection("user").add({
-              "wx_openid": loginData.openid
+              "wx_openid": loginData.openid,
+              "role": "ordinary",
+              "avatar": "",
+              "nickname": ""
             }).then((res2) => {
               common_vendor.index.setStorageSync("wx_openid", loginData.openid);
               app.globalData.wx_openid = loginData.openid;

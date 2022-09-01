@@ -4,6 +4,7 @@ exports[Symbol.toStringTag] = "Module";
 var common_vendor = require("./common/vendor.js");
 if (!Math) {
   "./pages/memory/memory.js";
+  "./pages/mine/mine.js";
 }
 const _sfc_main = {
   onLaunch() {
@@ -22,7 +23,13 @@ const _sfc_main = {
     wx_openid: common_vendor.index.getStorageSync("wx_openid"),
     noticeCacheName: "notice",
     memoryCacheName: "memory",
-    memorySumCacheName: "memorySum"
+    memorySumCacheName: "memorySum",
+    cloudAvatarPathCacheName: "cloudAvatarPath",
+    nicknameCacheName: "nickname",
+    calendarCacheName: "calendar",
+    roleCacheName: "role",
+    isPraiseAppCacheName: "isPraiseApp",
+    praiseAppSumCacheName: "praiseAppSum"
   }
 };
 var App = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["__file", "C:/HBuilderX/projects/RecordLife/App.vue"]]);

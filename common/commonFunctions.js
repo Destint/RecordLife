@@ -43,7 +43,10 @@ const wxLogin = async () => {
 							await db
 								.collection('user')
 								.add({
-									'wx_openid': loginData.openid
+									'wx_openid': loginData.openid,
+									'role': 'ordinary',
+									'avatar': '',
+									'nickname': ''
 								})
 								.then((res) => {
 									uni.setStorageSync('wx_openid', loginData.openid);

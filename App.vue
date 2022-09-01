@@ -23,7 +23,13 @@
 			wx_openid: uni.getStorageSync('wx_openid'),
 			noticeCacheName: 'notice',
 			memoryCacheName: 'memory',
-			memorySumCacheName: 'memorySum'
+			memorySumCacheName: 'memorySum',
+			cloudAvatarPathCacheName: 'cloudAvatarPath',
+			nicknameCacheName: 'nickname',
+			calendarCacheName: 'calendar',
+			roleCacheName: 'role',
+			isPraiseAppCacheName: 'isPraiseApp',
+			praiseAppSumCacheName: 'praiseAppSum'
 		}
 	}
 </script>

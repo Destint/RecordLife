@@ -73,6 +73,13 @@ const _sfc_main = {
     } catch (e) {
     }
   },
+  onShareAppMessage() {
+    return {
+      title: "\u8BB0\u5F55\u5173\u4E8E\u4F60\u7684\u56DE\u5FC6",
+      path: "/pages/memory/memory",
+      imageUrl: "https://vkceyugu.cdn.bspapp.com/VKCEYUGU-bcf64df9-4d03-4023-bc85-9000afa0f691/e989c0a9-706c-4c3c-8020-3c04a0e2344d.png"
+    };
+  },
   methods: {
     async uploadAccessToCloud(wx_openid) {
       if (!wx_openid)
@@ -605,4 +612,5 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }) : {});
 }
 var MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__file", "C:/HBuilderX/projects/RecordLife/pages/memory/memory.vue"]]);
+_sfc_main.__runtimeHooks = 2;
 wx.createPage(MiniProgramPage);

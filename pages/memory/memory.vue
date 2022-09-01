@@ -220,6 +220,13 @@
 				}
 			} catch (e) {}
 		},
+		onShareAppMessage() {
+			return {
+				title: '记录关于你的回忆',
+				path: '/pages/memory/memory',
+				imageUrl: 'https://vkceyugu.cdn.bspapp.com/VKCEYUGU-bcf64df9-4d03-4023-bc85-9000afa0f691/e989c0a9-706c-4c3c-8020-3c04a0e2344d.png'
+			}
+		},
 		methods: {
 			/**
 			 * 上传访问记录到云端
@@ -779,7 +786,6 @@
 			/**
 			 * 删除回忆
 			 * @param memory {object} 删除的回忆
-			 * 
 			 */
 			deleteMemory(memory: AnyObject): void {
 				if (!memory) return;
