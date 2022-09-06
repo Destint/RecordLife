@@ -40,9 +40,14 @@
 				<image class="image-icon-functionCell" src="../../static/img_random_joke_icon.png"></image>
 				<text class="text-content-functionCell">随机笑话</text>
 			</view>
-			<view class="view-box-functionCell" @click="onClickRandomEarthy" style="border-top: 1rpx solid #E4E4E4;">
-				<image class="image-icon-functionCell" src="../../static/img_random_earthy_icon.png"></image>
-				<text class="text-content-functionCell">随机土味</text>
+			<view class="view-box-functionCell" @click="onClickRandomSweetWorld"
+				style="border-top: 1rpx solid #E4E4E4;">
+				<image class="image-icon-functionCell" src="../../static/img_random_sweet_world_icon.png"></image>
+				<text class="text-content-functionCell">随机情话</text>
+			</view>
+			<view class="view-box-functionCell" @click="onClickFishCalendar" style="border-top: 1rpx solid #E4E4E4;">
+				<image class="image-icon-functionCell" src="../../static/img_fish_calendar_icon.png"></image>
+				<text class="text-content-functionCell">摸鱼日历</text>
 			</view>
 		</view>
 		<view class="view-area-function">
@@ -511,27 +516,27 @@
 						mask: true
 					})
 					let randomJokeRes: any = await uni.request({
-						url: 'https://www.mxnzp.com/api/jokes/list/random',
-						data: {
-							app_id: 'fjkpgjqmxolqnmqm',
-							app_secret: 'SEJGam9aWldEaUFtQWIyZ0FHTHZhQT09'
-						}
+						url: 'https://api.vvhan.com/api/joke?type=json'
 					});
 
-					let jokeList: AnyObject[] = randomJokeRes.data.data;
-					let randomJoke: AnyObject = jokeList[Math.floor(Math.random() * (jokeList.length))];
+					if (randomJokeRes && randomJokeRes.data && randomJokeRes.data.success) {
+						let joke: string = randomJokeRes.data.joke;
+						let title: string = randomJokeRes.data.title;
 
-					that.otherFunctionTitle = "随机笑话";
-					that.otherFunctionContent = randomJoke ? randomJoke.content : '获取笑话失败请重试';
-					that.isShowPopup = true;
-					that.isShowOtherFunctionView = true;
+						that.otherFunctionTitle = title;
+						that.otherFunctionContent = joke;
+						that.isShowPopup = true;
+						that.isShowOtherFunctionView = true;
+					}
 					uni.hideLoading();
-				} catch (e) {}
+				} catch (e) {
+					uni.hideLoading();
+				}
 			},
 			/**
-			 * 点击随机土味事件
+			 * 点击随机情话事件
 			 */
-			async onClickRandomEarthy(): Promise < void > {
+			async onClickRandomSweetWorld(): Promise < void > {
 				let that = this;
 
 				try {
@@ -539,20 +544,20 @@
 						title: '生成中...',
 						mask: true
 					})
-					let randomEarthyRes: any = await uni.request({
-						url: 'https://api.uomg.com/api/rand.qinghua',
-						data: {
-							format: 'json'
-						}
+					let randomSweetWorldRes: any = await uni.request({
+						url: 'https://api.vvhan.com/api/love?type=json'
 					});
 
-					that.otherFunctionTitle = "随机土味";
-					that.otherFunctionContent = randomEarthyRes.data && randomEarthyRes.data.content ? randomEarthyRes
-						.data.content : '获取土味失败请重试';
-					that.isShowPopup = true;
-					that.isShowOtherFunctionView = true;
+					if (randomSweetWorldRes && randomSweetWorldRes.data && randomSweetWorldRes.data.success) {
+						that.otherFunctionTitle = "随机情话";
+						that.otherFunctionContent = randomSweetWorldRes.data.ishan;
+						that.isShowPopup = true;
+						that.isShowOtherFunctionView = true;
+					}
 					uni.hideLoading();
-				} catch (e) {}
+				} catch (e) {
+					uni.hideLoading();
+				}
 			},
 			/**
 			 * 点击关于小程序事件
@@ -642,6 +647,36 @@
 						})
 						.catch()
 				} catch (e) {}
+			},
+			/**
+			 * 点击摸鱼日历事件
+			 */
+			async onClickFishCalendar(): Promise < void > {
+				let that = this;
+
+				try {
+					uni.showLoading({
+						title: '生成中...',
+						mask: true
+					})
+					let fishCalendarRes: AnyObject = await uni.request({
+						url: 'https://api.vvhan.com/api/moyu?type=json'
+					})
+
+					uni.hideLoading();
+					if (fishCalendarRes && fishCalendarRes.data && fishCalendarRes.data.url) {
+						let imgList: string[] = [];
+
+						imgList.push(fishCalendarRes.data.url);
+						uni.previewImage({
+							current: fishCalendarRes.data.url,
+							urls: imgList,
+							indicator: "none"
+						})
+					}
+				} catch (e) {
+					uni.hideLoading();
+				}
 			}
 		}
 	}

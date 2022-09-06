@@ -25,7 +25,7 @@ const _sfc_main = {
       otherFunctionTitle: "",
       otherFunctionContent: "",
       isShowAboutApp: false,
-      aboutAppContent: "\u8FD9\u662F\u4E00\u4E2A\u53EF\u4EE5\u300A\u7559\u4F4F\u56DE\u5FC6\u300B\u7684\u5C0F\u7A0B\u5E8F\u3002\n\u53EF\u9009\u7684\u9700\u8981\u5C0F\u7A0B\u5E8F\u6388\u6743\u7684\u529F\u80FD\uFF1A\n1\u3001\u5F00\u542F\u5B9A\u4F4D\u540E\uFF0C\u53EF\u5728\u8BB0\u5F55\u56DE\u5FC6\u65F6\u8BB0\u4E0B\u4F4D\u7F6E\u4E0E\u5929\u6C14\u3002\n2\u3001\u5F00\u542F\u5F55\u97F3\u540E\uFF0C\u53EF\u5728\u8BB0\u5F55\u56DE\u5FC6\u65F6\u8BB0\u4E0B\u58F0\u97F3\u3002\n3\u3001\u53EF\u4ECE\u76F8\u518C\u4E2D\u9009\u62E9\u60F3\u8981\u7684\u56FE\u7247\u4E00\u540C\u8BB0\u5F55\u3002\n\u5982\u679C\u60A8\u5728\u4F7F\u7528\u5C0F\u7A0B\u5E8F\u65F6\u9047\u5230\u4EFB\u4F55\u95EE\u9898\u6216\u8005\u60A8\u5BF9\u5C0F\u7A0B\u5E8F\u6709\u66F4\u597D\u7684\u5EFA\u8BAE\u6216\u60F3\u6CD5\uFF0C\u6B22\u8FCE\u901A\u8FC7\u300A\u8054\u7CFB\u5BA2\u670D\u300B\u529F\u80FD\u6765\u5411\u5F00\u53D1\u8005\u53CD\u9988\u3002",
+      aboutAppContent: "\u8FD9\u662F\u4E00\u4E2A\u53EF\u4EE5\u300A\u7559\u4F4F\u56DE\u5FC6\u300B\u7684\u5C0F\u7A0B\u5E8F\u3002\n\u53EF\u9009\u7684\u9700\u8981\u5C0F\u7A0B\u5E8F\u6388\u6743\u7684\u529F\u80FD\uFF1A\n1\u3001\u5F00\u542F\u5B9A\u4F4D\u540E\uFF0C\u53EF\u5728\u8BB0\u5F55\u56DE\u5FC6\u65F6\u8BB0\u4E0B\u4F4D\u7F6E\u4E0E\u5929\u6C14\u3002\n2\u3001\u53EF\u4ECE\u76F8\u518C\u4E2D\u9009\u62E9\u60F3\u8981\u7684\u56FE\u7247\u4E00\u540C\u8BB0\u5F55\u3002\n\u5982\u679C\u60A8\u5728\u4F7F\u7528\u5C0F\u7A0B\u5E8F\u65F6\u9047\u5230\u4EFB\u4F55\u95EE\u9898\u6216\u8005\u60A8\u5BF9\u5C0F\u7A0B\u5E8F\u6709\u66F4\u597D\u7684\u5EFA\u8BAE\u6216\u60F3\u6CD5\uFF0C\u6B22\u8FCE\u901A\u8FC7\u300A\u8054\u7CFB\u5BA2\u670D\u300B\u529F\u80FD\u6765\u5411\u5F00\u53D1\u8005\u53CD\u9988\u3002",
       isPraiseApp: common_vendor.index.getStorageSync(app.globalData.isPraiseAppCacheName) ? common_vendor.index.getStorageSync(app.globalData.isPraiseAppCacheName) : false,
       praiseAppSum: common_vendor.index.getStorageSync(app.globalData.praiseAppSumCacheName) ? common_vendor.index.getStorageSync(app.globalData.praiseAppSumCacheName) : 0
     };
@@ -296,41 +296,40 @@ const _sfc_main = {
           mask: true
         });
         let randomJokeRes = await common_vendor.index.request({
-          url: "https://www.mxnzp.com/api/jokes/list/random",
-          data: {
-            app_id: "fjkpgjqmxolqnmqm",
-            app_secret: "SEJGam9aWldEaUFtQWIyZ0FHTHZhQT09"
-          }
+          url: "https://api.vvhan.com/api/joke?type=json"
         });
-        let jokeList = randomJokeRes.data.data;
-        let randomJoke = jokeList[Math.floor(Math.random() * jokeList.length)];
-        that.otherFunctionTitle = "\u968F\u673A\u7B11\u8BDD";
-        that.otherFunctionContent = randomJoke ? randomJoke.content : "\u83B7\u53D6\u7B11\u8BDD\u5931\u8D25\u8BF7\u91CD\u8BD5";
-        that.isShowPopup = true;
-        that.isShowOtherFunctionView = true;
+        if (randomJokeRes && randomJokeRes.data && randomJokeRes.data.success) {
+          let joke = randomJokeRes.data.joke;
+          let title = randomJokeRes.data.title;
+          that.otherFunctionTitle = title;
+          that.otherFunctionContent = joke;
+          that.isShowPopup = true;
+          that.isShowOtherFunctionView = true;
+        }
         common_vendor.index.hideLoading();
       } catch (e) {
+        common_vendor.index.hideLoading();
       }
     },
-    async onClickRandomEarthy() {
+    async onClickRandomSweetWorld() {
       let that = this;
       try {
         common_vendor.index.showLoading({
           title: "\u751F\u6210\u4E2D...",
           mask: true
         });
-        let randomEarthyRes = await common_vendor.index.request({
-          url: "https://api.uomg.com/api/rand.qinghua",
-          data: {
-            format: "json"
-          }
+        let randomSweetWorldRes = await common_vendor.index.request({
+          url: "https://api.vvhan.com/api/love?type=json"
         });
-        that.otherFunctionTitle = "\u968F\u673A\u571F\u5473";
-        that.otherFunctionContent = randomEarthyRes.data && randomEarthyRes.data.content ? randomEarthyRes.data.content : "\u83B7\u53D6\u571F\u5473\u5931\u8D25\u8BF7\u91CD\u8BD5";
-        that.isShowPopup = true;
-        that.isShowOtherFunctionView = true;
+        if (randomSweetWorldRes && randomSweetWorldRes.data && randomSweetWorldRes.data.success) {
+          that.otherFunctionTitle = "\u968F\u673A\u60C5\u8BDD";
+          that.otherFunctionContent = randomSweetWorldRes.data.ishan;
+          that.isShowPopup = true;
+          that.isShowOtherFunctionView = true;
+        }
         common_vendor.index.hideLoading();
       } catch (e) {
+        common_vendor.index.hideLoading();
       }
     },
     async onClickAboutApp() {
@@ -387,6 +386,29 @@ const _sfc_main = {
         }).catch();
       } catch (e) {
       }
+    },
+    async onClickFishCalendar() {
+      try {
+        common_vendor.index.showLoading({
+          title: "\u751F\u6210\u4E2D...",
+          mask: true
+        });
+        let fishCalendarRes = await common_vendor.index.request({
+          url: "https://api.vvhan.com/api/moyu?type=json"
+        });
+        common_vendor.index.hideLoading();
+        if (fishCalendarRes && fishCalendarRes.data && fishCalendarRes.data.url) {
+          let imgList = [];
+          imgList.push(fishCalendarRes.data.url);
+          common_vendor.index.previewImage({
+            current: fishCalendarRes.data.url,
+            urls: imgList,
+            indicator: "none"
+          });
+        }
+      } catch (e) {
+        common_vendor.index.hideLoading();
+      }
     }
   }
 };
@@ -411,33 +433,34 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     n: common_vendor.o((...args) => $options.onClickSuitAndAvoid && $options.onClickSuitAndAvoid(...args)),
     o: common_vendor.o((...args) => $options.onClickRandomJoke && $options.onClickRandomJoke(...args)),
-    p: common_vendor.o((...args) => $options.onClickRandomEarthy && $options.onClickRandomEarthy(...args)),
-    q: common_vendor.o((...args) => $options.onClickAboutApp && $options.onClickAboutApp(...args)),
-    r: $data.isShowSetNicknameView === true
+    p: common_vendor.o((...args) => $options.onClickRandomSweetWorld && $options.onClickRandomSweetWorld(...args)),
+    q: common_vendor.o((...args) => $options.onClickFishCalendar && $options.onClickFishCalendar(...args)),
+    r: common_vendor.o((...args) => $options.onClickAboutApp && $options.onClickAboutApp(...args)),
+    s: $data.isShowSetNicknameView === true
   }, $data.isShowSetNicknameView === true ? {
-    s: common_vendor.o((...args) => $options.onClickSetNicknameMask && $options.onClickSetNicknameMask(...args)),
-    t: common_vendor.o((...args) => $options.inputNicknameContent && $options.inputNicknameContent(...args)),
-    v: common_vendor.o((...args) => $options.onClickUploadNickname && $options.onClickUploadNickname(...args))
+    t: common_vendor.o((...args) => $options.onClickSetNicknameMask && $options.onClickSetNicknameMask(...args)),
+    v: common_vendor.o((...args) => $options.inputNicknameContent && $options.inputNicknameContent(...args)),
+    w: common_vendor.o((...args) => $options.onClickUploadNickname && $options.onClickUploadNickname(...args))
   } : {}, {
-    w: $data.isShowSetNoticeView === true
+    x: $data.isShowSetNoticeView === true
   }, $data.isShowSetNoticeView === true ? {
-    x: common_vendor.o((...args) => $options.onClickSetNoticeMask && $options.onClickSetNoticeMask(...args)),
-    y: common_vendor.o((...args) => $options.inputNoticeContent && $options.inputNoticeContent(...args)),
-    z: common_vendor.o((...args) => $options.onClickUploadNotice && $options.onClickUploadNotice(...args))
+    y: common_vendor.o((...args) => $options.onClickSetNoticeMask && $options.onClickSetNoticeMask(...args)),
+    z: common_vendor.o((...args) => $options.inputNoticeContent && $options.inputNoticeContent(...args)),
+    A: common_vendor.o((...args) => $options.onClickUploadNotice && $options.onClickUploadNotice(...args))
   } : {}, {
-    A: $data.isShowOtherFunctionView === true
+    B: $data.isShowOtherFunctionView === true
   }, $data.isShowOtherFunctionView === true ? {
-    B: common_vendor.o((...args) => $options.onClickOtherFunctionMask && $options.onClickOtherFunctionMask(...args)),
-    C: common_vendor.t($data.otherFunctionTitle),
-    D: common_vendor.t($data.otherFunctionContent)
+    C: common_vendor.o((...args) => $options.onClickOtherFunctionMask && $options.onClickOtherFunctionMask(...args)),
+    D: common_vendor.t($data.otherFunctionTitle),
+    E: common_vendor.t($data.otherFunctionContent)
   } : {}, {
-    E: $data.isShowAboutApp === true
+    F: $data.isShowAboutApp === true
   }, $data.isShowAboutApp === true ? {
-    F: common_vendor.o((...args) => $options.onClickAboutAppMask && $options.onClickAboutAppMask(...args)),
-    G: common_vendor.t($data.aboutAppContent),
-    H: common_vendor.o((...args) => $options.onClickPraiseApp && $options.onClickPraiseApp(...args)),
-    I: $data.isPraiseApp ? "../../static/img_praise_icon.png" : "../../static/img_no_praise_icon.png",
-    J: common_vendor.t($data.praiseAppSum)
+    G: common_vendor.o((...args) => $options.onClickAboutAppMask && $options.onClickAboutAppMask(...args)),
+    H: common_vendor.t($data.aboutAppContent),
+    I: common_vendor.o((...args) => $options.onClickPraiseApp && $options.onClickPraiseApp(...args)),
+    J: $data.isPraiseApp ? "../../static/img_praise_icon.png" : "../../static/img_no_praise_icon.png",
+    K: common_vendor.t($data.praiseAppSum)
   } : {});
 }
 var MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__file", "C:/HBuilderX/projects/RecordLife/pages/mine/mine.vue"]]);
