@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/memory/memory",
+    "pages/wish/wish",
     "pages/mine/mine"
   ],
   "window": {
@@ -17,6 +18,12 @@
         "text": "回忆",
         "iconPath": "static/img_memory_normal_icon.png",
         "selectedIconPath": "static/img_memory_highlight_icon.png"
+      },
+      {
+        "pagePath": "pages/wish/wish",
+        "text": "心愿",
+        "iconPath": "static/img_wish_normal_icon.png",
+        "selectedIconPath": "static/img_wish_highlight_icon.png"
       },
       {
         "pagePath": "pages/mine/mine",

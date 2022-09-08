@@ -6273,6 +6273,14 @@ const pages = [
     }
   },
   {
+    path: "pages/wish/wish",
+    style: {
+      navigationBarTitleText: "\u5FC3\u613F",
+      onReachBottomDistance: 100,
+      enablePullDownRefresh: true
+    }
+  },
+  {
     path: "pages/mine/mine",
     style: {
       navigationBarTitleText: "\u6211\u7684"
@@ -6293,6 +6301,12 @@ const tabBar = {
       text: "\u56DE\u5FC6",
       iconPath: "static/img_memory_normal_icon.png",
       selectedIconPath: "static/img_memory_highlight_icon.png"
+    },
+    {
+      pagePath: "pages/wish/wish",
+      text: "\u5FC3\u613F",
+      iconPath: "static/img_wish_normal_icon.png",
+      selectedIconPath: "static/img_wish_highlight_icon.png"
     },
     {
       pagePath: "pages/mine/mine",
@@ -6535,7 +6549,7 @@ switch (f) {
   default:
     g = f;
 }
-const p = h('{\n    "address": [\n        "127.0.0.1",\n        "192.168.109.56"\n    ],\n    "debugPort": 58520,\n    "initialLaunchType": "local",\n    "servePort": 58521,\n    "skipFiles": [\n        "<node_internals>/**/*.js",\n        "C:/HBuilderX/HBuilderX/plugins/unicloud/**/*.js"\n    ]\n}\n'), m = h('[{"provider":"aliyun","spaceName":"record-life","spaceId":"bcf64df9-4d03-4023-bc85-9000afa0f691","clientSecret":"7OHDBYncGIzdkVKmRsWQxg==","endpoint":"https://api.bspapp.com"}]');
+const p = h('{\n    "address": [\n        "127.0.0.1",\n        "192.168.109.56"\n    ],\n    "debugPort": 58092,\n    "initialLaunchType": "local",\n    "servePort": 58094,\n    "skipFiles": [\n        "<node_internals>/**/*.js",\n        "C:/HBuilderX/HBuilderX/plugins/unicloud/**/*.js"\n    ]\n}\n'), m = h('[{"provider":"aliyun","spaceName":"record-life","spaceId":"bcf64df9-4d03-4023-bc85-9000afa0f691","clientSecret":"7OHDBYncGIzdkVKmRsWQxg==","endpoint":"https://api.bspapp.com"}]');
 let _ = "";
 try {
   _ = "__UNI__643D500";

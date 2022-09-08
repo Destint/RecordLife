@@ -29,7 +29,9 @@
 			calendarCacheName: 'calendar',
 			roleCacheName: 'role',
 			isPraiseAppCacheName: 'isPraiseApp',
-			praiseAppSumCacheName: 'praiseAppSum'
+			praiseAppSumCacheName: 'praiseAppSum',
+			wishSumCacheName: 'wishSum',
+			wishCacheName: 'wish'
 		}
 	}
 </script>

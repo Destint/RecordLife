@@ -4,6 +4,7 @@ exports[Symbol.toStringTag] = "Module";
 var common_vendor = require("./common/vendor.js");
 if (!Math) {
   "./pages/memory/memory.js";
+  "./pages/wish/wish.js";
   "./pages/mine/mine.js";
 }
 const _sfc_main = {
@@ -29,7 +30,9 @@ const _sfc_main = {
     calendarCacheName: "calendar",
     roleCacheName: "role",
     isPraiseAppCacheName: "isPraiseApp",
-    praiseAppSumCacheName: "praiseAppSum"
+    praiseAppSumCacheName: "praiseAppSum",
+    wishSumCacheName: "wishSum",
+    wishCacheName: "wish"
   }
 };
 var App = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["__file", "C:/HBuilderX/projects/RecordLife/App.vue"]]);

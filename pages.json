@@ -7,6 +7,14 @@
 			"enablePullDownRefresh": true
 		}
 	}, {
+		"path": "pages/wish/wish",
+		"style": {
+			"navigationBarTitleText": "心愿",
+			"onReachBottomDistance": 100,
+			"enablePullDownRefresh": true
+		}
+
+	}, {
 		"path": "pages/mine/mine",
 		"style": {
 			"navigationBarTitleText": "我的"
@@ -26,6 +34,12 @@
 				"text": "回忆",
 				"iconPath": "static/img_memory_normal_icon.png",
 				"selectedIconPath": "static/img_memory_highlight_icon.png"
+			},
+			{
+				"pagePath": "pages/wish/wish",
+				"text": "心愿",
+				"iconPath": "static/img_wish_normal_icon.png",
+				"selectedIconPath": "static/img_wish_highlight_icon.png"
 			},
 			{
 				"pagePath": "pages/mine/mine",
