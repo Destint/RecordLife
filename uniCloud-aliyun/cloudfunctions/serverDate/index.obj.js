@@ -1,19 +1,9 @@
-const formatNumber = n => {
-	n = n.toString();
+const dayjs = require('dayjs');
+var utc = require('dayjs/plugin/utc');
+var timezone = require('dayjs/plugin/timezone');
 
-	return n[1] ? n : `0${n}`;
-}
-
-function formatTime(date) {
-	const year = date.getFullYear();
-	const month = date.getMonth() + 1;
-	const day = date.getDate();
-	const hour = date.getHours();
-	const minute = date.getMinutes();
-	const second = date.getSeconds();
-
-	return `${[year, month, day].map(formatNumber).join('-')} ${[hour, minute, second].map(formatNumber).join(':')}`;
-}
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 module.exports = {
 	/**
@@ -24,7 +14,7 @@ module.exports = {
 			errCode: 0,
 			errMsg: '获取成功',
 			data: {
-				currentDate: formatTime(new Date()),
+				currentDate: dayjs().tz("Asia/Shanghai").format('YYYY-MM-DD HH:mm:ss'),
 				currentId: new Date().getTime()
 			}
 		}
