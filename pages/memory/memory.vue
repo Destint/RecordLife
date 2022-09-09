@@ -129,7 +129,7 @@
 				<view class="view-box-addMemoryContent">
 					<textarea class="textarea-area-inputMemoryContent" maxlength="2000" placeholder="回忆的内容..."
 						placeholder-style="color: rgba(70,123,115,0.5);" disable-default-padding="true"
-						cursor-spacing="30" @input="inputMemoryContent"></textarea>
+						cursor-spacing="30" @blur="inputMemoryContent"></textarea>
 				</view>
 				<view class="view-box-addMemoryFunction">
 					<image class="image-icon-basic" style="width: 100rpx;height: 100rpx;"
