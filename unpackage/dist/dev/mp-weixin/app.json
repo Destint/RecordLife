@@ -42,5 +42,7 @@
     "startLocationUpdate",
     "onLocationChange"
   ],
-  "usingComponents": {}
+  "lazyCodeLoading": "requiredComponents",
+  "usingComponents": {},
+  "sitemapLocation": "sitemap.json"
 }
