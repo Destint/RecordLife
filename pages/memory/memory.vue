@@ -1,6 +1,7 @@
 <template>
 	<page-meta :page-style="'overflow:' + (isShowPopup ? 'hidden' : 'visible')"></page-meta>
 	<view class="view-page-memory">
+		<canvas type="2d" id="myCanvas" style="position: fixed;left: -10000rpx; top: -10000rpx;"></canvas>
 		<view class="view-area-topInfo">
 			<view class="view-box-notice">
 				<image class="image-icon-basic" src="../../static/img_notice_icon.png"
@@ -445,8 +446,13 @@
 							sizeType: ['compressed'],
 							sourceType: ['album']
 						})
+						uni.showLoading({
+							title: '图片选择中...',
+							mask: true
+						})
+						let chooseImageList: string[] = imageRes.tempFiles;
 
-						let chooseImageList: string[] = imageRes.tempFilePaths;
+						chooseImageList = await that.compressImgList(imageRes.tempFiles);
 						for (let i = 0; i < chooseImageList.length; i++) {
 							let compressRes: any = await uni.compressImage({
 								src: chooseImageList[i],
@@ -456,7 +462,71 @@
 							chooseImageList[i] = compressRes.tempFilePath;
 						}
 						that.memoryDetail.localPicPathList = localPicPathList.concat(chooseImageList);
+						uni.hideLoading();
 					}
+				} catch (e) {}
+			},
+			/**
+			 * 压缩图片列表
+			 * @param {Array} imgList 图片列表
+			 */
+			async compressImgList(imgList: any): Promise < string[] > {
+				let that = this;
+
+				try {
+					let compressImgList: string[] = [];
+
+					for (let i = 0; i < imgList.length; i++) {
+						if (imgList[i].size / 1024 < 500) {
+							compressImgList.push(imgList[i].path);
+							continue;
+						}
+						let imageInfo: any = await uni.getImageInfo({
+							src: imgList[i].path
+						})
+						let p: Promise < boolean > = new Promise((resolve) => {
+							const selectorQuery: any = uni.createSelectorQuery();
+
+							selectorQuery
+								.select('#myCanvas')
+								.fields({
+									node: true,
+									size: true
+								})
+								.exec((res) => {
+									const canvas: any = res[0].node;
+									const ctx = canvas.getContext('2d');
+									const ratio = imageInfo.height / imageInfo.width;
+
+									canvas.width = imageInfo.width > 750 ? 750 : imageInfo.width;
+									canvas.height = canvas.width * ratio;
+									let img = canvas.createImage();
+
+									img.src = imageInfo.path;
+									img.onload = () => {
+										ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+										wx.canvasToTempFilePath({
+											canvas: canvas,
+											fileType: 'jpg',
+											success: (res) => {
+												compressImgList.push(res.tempFilePath);
+												resolve(true);
+											},
+											fail: () => {
+												resolve(true);
+											}
+										}, that);
+									}
+									img.onerror = () => {
+										resolve(true);
+									}
+								})
+						})
+
+						await p;
+					}
+
+					return compressImgList;
 				} catch (e) {}
 			},
 			/**

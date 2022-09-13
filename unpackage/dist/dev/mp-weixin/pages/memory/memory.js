@@ -226,7 +226,12 @@ const _sfc_main = {
             sizeType: ["compressed"],
             sourceType: ["album"]
           });
-          let chooseImageList = imageRes.tempFilePaths;
+          common_vendor.index.showLoading({
+            title: "\u56FE\u7247\u9009\u62E9\u4E2D...",
+            mask: true
+          });
+          let chooseImageList = imageRes.tempFiles;
+          chooseImageList = await that.compressImgList(imageRes.tempFiles);
           for (let i = 0; i < chooseImageList.length; i++) {
             let compressRes = await common_vendor.index.compressImage({
               src: chooseImageList[i],
@@ -235,7 +240,58 @@ const _sfc_main = {
             chooseImageList[i] = compressRes.tempFilePath;
           }
           that.memoryDetail.localPicPathList = localPicPathList.concat(chooseImageList);
+          common_vendor.index.hideLoading();
         }
+      } catch (e) {
+      }
+    },
+    async compressImgList(imgList) {
+      let that = this;
+      try {
+        let compressImgList = [];
+        for (let i = 0; i < imgList.length; i++) {
+          if (imgList[i].size / 1024 < 500) {
+            compressImgList.push(imgList[i].path);
+            continue;
+          }
+          let imageInfo = await common_vendor.index.getImageInfo({
+            src: imgList[i].path
+          });
+          let p = new Promise((resolve) => {
+            const selectorQuery = common_vendor.index.createSelectorQuery();
+            selectorQuery.select("#myCanvas").fields({
+              node: true,
+              size: true
+            }).exec((res) => {
+              const canvas = res[0].node;
+              const ctx = canvas.getContext("2d");
+              const ratio = imageInfo.height / imageInfo.width;
+              canvas.width = imageInfo.width > 750 ? 750 : imageInfo.width;
+              canvas.height = canvas.width * ratio;
+              let img = canvas.createImage();
+              img.src = imageInfo.path;
+              img.onload = () => {
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                wx.canvasToTempFilePath({
+                  canvas,
+                  fileType: "jpg",
+                  success: (res2) => {
+                    compressImgList.push(res2.tempFilePath);
+                    resolve(true);
+                  },
+                  fail: () => {
+                    resolve(true);
+                  }
+                }, that);
+              };
+              img.onerror = () => {
+                resolve(true);
+              };
+            });
+          });
+          await p;
+        }
+        return compressImgList;
       } catch (e) {
       }
     },
