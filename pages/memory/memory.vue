@@ -193,17 +193,17 @@
 			};
 		},
 		async onLoad() {
-			// let that = this;
+			let that = this;
 
-			// uni.showLoading({
-			// 	title: '载入回忆中',
-			// 	mask: true
-			// })
-			// if (!app.globalData.wx_openid) await commonFunctions.wxLogin();
-			// that.uploadAccessToCloud(app.globalData.wx_openid);
-			// that.getNoticeFromCloud();
-			// await that.getMemoryFromCloud(app.globalData.wx_openid, 0);
-			// uni.hideLoading();
+			uni.showLoading({
+				title: '载入回忆中',
+				mask: true
+			})
+			if (!app.globalData.wx_openid) await commonFunctions.wxLogin();
+			that.uploadAccessToCloud(app.globalData.wx_openid);
+			that.getNoticeFromCloud();
+			await that.getMemoryFromCloud(app.globalData.wx_openid, 0);
+			uni.hideLoading();
 		},
 		async onPullDownRefresh() {
 			let that = this;

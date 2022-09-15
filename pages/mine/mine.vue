@@ -1,6 +1,7 @@
 <template>
 	<page-meta :page-style="'overflow:' + (isShowPopup ? 'hidden' : 'visible')"></page-meta>
 	<view class="view-page-mine">
+		<canvas type="2d" id="myCanvas" style="position: fixed;left: -10000rpx; top: -10000rpx;"></canvas>
 		<view class="view-area-topInfo">
 			<image class="image-icon-avatar" mode="aspectFill"
 				:src="cloudAvatarPath ? cloudAvatarPath : '../../static/img_default_avatar_icon.png'"></image>
@@ -126,13 +127,13 @@
 			return {
 				isShowPopup: false,
 				cloudAvatarPath: uni.getStorageSync(app.globalData.cloudAvatarPathCacheName) ? uni.getStorageSync(app
-					.globalData.cloudAvatarPathCacheName) : '',
+					.globalData.cloudAvatarPathCacheName) as string : '',
 				nickname: uni.getStorageSync(app.globalData.nicknameCacheName) ? uni.getStorageSync(app
-					.globalData.nicknameCacheName) : '请设置昵称',
+					.globalData.nicknameCacheName) as string : '请设置昵称',
 				calendar: uni.getStorageSync(app.globalData.calendarCacheName) ? uni.getStorageSync(app
 					.globalData.calendarCacheName) : {},
 				role: uni.getStorageSync(app.globalData.roleCacheName) ? uni.getStorageSync(app
-					.globalData.roleCacheName) : 'ordinary',
+					.globalData.roleCacheName) as string : 'ordinary',
 				isShowSetNicknameView: false,
 				setNicknameContent: '',
 				isShowSetNoticeView: false,
@@ -143,9 +144,9 @@
 				isShowAboutApp: false,
 				aboutAppContent: '这是一个可以《留住回忆》的小程序。\n可选的需要小程序授权的功能：\n1、开启定位后，可在记录回忆时记下位置与天气。\n2、可从相册中选择想要的图片一同记录。\n如果您在使用小程序时遇到任何问题或者您对小程序有更好的建议或想法，欢迎通过《联系客服》功能来向开发者反馈。',
 				isPraiseApp: uni.getStorageSync(app.globalData.isPraiseAppCacheName) ? uni.getStorageSync(app.globalData
-					.isPraiseAppCacheName) : false,
+					.isPraiseAppCacheName) as boolean : false,
 				praiseAppSum: uni.getStorageSync(app.globalData.praiseAppSumCacheName) ? uni.getStorageSync(app.globalData
-					.praiseAppSumCacheName) : 0
+					.praiseAppSumCacheName) as number : 0
 			};
 		},
 		async onLoad() {
@@ -196,6 +197,25 @@
 				} catch (e) {}
 			},
 			/**
+			 * 封装自带的http请求API
+			 * @@param {string} url 请求地址
+			 * @@param {AnyObject} data 请求参数
+			 */
+			httpRequest(url: string, data ? : AnyObject) {
+				return new Promise((resolve) => {
+					uni.request({
+						url: url,
+						data: data,
+						success: (res) => {
+							resolve(res);
+						},
+						fail: () => {
+							resolve(undefined);
+						}
+					});
+				});
+			},
+			/**
 			 * 获取万年历信息
 			 */
 			async getCalendarInfo(): Promise < void > {
@@ -207,15 +227,14 @@
 					let calendarCache: AnyObject = uni.getStorageSync(app.globalData.calendarCacheName);
 
 					if (calendarCache && calendarCache.date === currentDate) return;
-					let calendarRes: AnyObject = await uni.request({
-						url: 'https://api.djapi.cn/wannianli/get',
-						data: {
-							date: currentDate,
-							cn_to_unicode: '1',
-							token: '37555a616248cb486ca0e60c10eca164',
-							datatype: 'json'
-						}
-					})
+					let httpUrl = 'https://api.djapi.cn/wannianli/get';
+					let httpData = {
+						date: currentDate,
+						cn_to_unicode: '1',
+						token: '37555a616248cb486ca0e60c10eca164',
+						datatype: 'json'
+					};
+					let calendarRes: AnyObject = await that.httpRequest(httpUrl, httpData);
 					let calendarInfo: AnyObject = calendarRes.data.Result;
 					let calendar: AnyObject = {};
 
@@ -233,28 +252,144 @@
 				} catch (e) {}
 			},
 			/**
+			 * 封装自带的选择图片API
+			 * @@param {number} count 选择的图片个数
+			 */
+			chooseImage(count: number) {
+				return new Promise((resolve) => {
+					uni.chooseImage({
+						count: count,
+						sizeType: ['compressed'],
+						sourceType: ['album'],
+						success: (res) => {
+							resolve(res);
+						},
+						fail: () => {
+							resolve(undefined);
+						}
+					});
+				});
+			},
+			/**
+			 * 封装自带的压缩图片的API
+			 * @@param {string} src 图片地址
+			 */
+			compressImage(src: string): Promise < string > {
+				return new Promise((resolve) => {
+					uni.compressImage({
+						src: src,
+						quality: 80,
+						success: (res) => {
+							resolve(res.tempFilePath);
+						},
+						fail: () => {
+							resolve(src);
+						}
+					});
+				});
+			},
+			/**
+			 * 封装自带的获取图片信息的API
+			 * @@param {string} src 图片地址
+			 */
+			getImageInfo(src: string) {
+				return new Promise((resolve) => {
+					uni.getImageInfo({
+						src: src,
+						success: (res) => {
+							resolve(res);
+						},
+						fail: () => {
+							resolve(undefined);
+						}
+					});
+				});
+			},
+			/**
+			 * 压缩图片列表
+			 * @param {Array} imgList 图片列表
+			 */
+			async compressImgList(imgList: any): Promise < string[] > {
+				let that = this;
+
+				try {
+					let compressImgList: string[] = [];
+
+					for (let i = 0; i < imgList.length; i++) {
+						if (imgList[i].size / 1024 < 500) {
+							compressImgList.push(imgList[i].path);
+							continue;
+						}
+						let imageInfo: AnyObject = await that.getImageInfo(imgList[i].path);
+
+						if (!imageInfo) continue;
+						let p: Promise < boolean > = new Promise((resolve) => {
+							const selectorQuery: any = uni.createSelectorQuery();
+
+							selectorQuery
+								.select('#myCanvas')
+								.fields({
+									node: true,
+									size: true
+								})
+								.exec((res: any) => {
+									const canvas: any = res[0].node;
+									const ctx = canvas.getContext('2d');
+									const ratio = imageInfo.height / imageInfo.width;
+
+									canvas.width = imageInfo.width > 750 ? 750 : imageInfo.width;
+									canvas.height = canvas.width * ratio;
+									let img = canvas.createImage();
+
+									img.src = imageInfo.path;
+									img.onload = () => {
+										ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+										wx.canvasToTempFilePath({
+											canvas: canvas,
+											fileType: 'jpg',
+											success: (fileRes) => {
+												compressImgList.push(fileRes.tempFilePath);
+												resolve(true);
+											},
+											fail: () => {
+												resolve(true);
+											}
+										}, this);
+									}
+									img.onerror = () => {
+										resolve(true);
+									}
+								})
+						})
+
+						await p;
+					}
+
+					return compressImgList;
+				} catch (e) {}
+			},
+			/**
 			 * 点击设置头像
 			 */
 			async onClickSetAvatar(): Promise < void > {
 				let that = this;
 
 				try {
-					let imageRes: any = await uni.chooseImage({
-						count: 1,
-						sizeType: ['compressed'],
-						sourceType: ['album']
-					});
+					let imageRes: any = await that.chooseImage(1);
+
+					if (!imageRes) return;
 					uni.showLoading({
 						title: '设置中...',
 						mask: true
 					})
-					let chooseImageList: string[] = imageRes.tempFilePaths;
-					let compressRes: any = await uni.compressImage({
-						src: chooseImageList[0],
-						quality: 80
-					});
+					let chooseImageList: string[] = imageRes.tempFiles;
 
-					chooseImageList[0] = compressRes.tempFilePath;
+					chooseImageList = await that.compressImgList(imageRes.tempFiles);
+					for (let i = 0; i < chooseImageList.length; i++) {
+						let compressRes = await that.compressImage(chooseImageList[i]);
+
+						chooseImageList[i] = compressRes;
+					}
 					await uniCloud.uploadFile({
 						filePath: chooseImageList[0],
 						cloudPath: app.globalData.wx_openid + '.avatar.jpg'
@@ -318,7 +453,7 @@
 			 * 监听输入的昵称
 			 * @param {object} event 输入对象
 			 */
-			inputNicknameContent(event): void {
+			inputNicknameContent(event: any): void {
 				let that = this;
 
 				that.setNicknameContent = event.target.value;
@@ -355,7 +490,7 @@
 									.update({
 										'nickname': nickname
 									})
-									.then((res) => {
+									.then(() => {
 										that.nickname = nickname;
 										uni.setStorageSync(app.globalData.nicknameCacheName, nickname);
 										that.onClickSetNicknameMask();
@@ -365,7 +500,7 @@
 											icon: "none"
 										})
 									})
-									.catch((err) => {
+									.catch(() => {
 										that.onClickSetNicknameMask();
 										uni.hideLoading();
 									})
@@ -401,7 +536,7 @@
 			 * 监听输入的公告
 			 * @param {object} event 输入对象
 			 */
-			inputNoticeContent(event): void {
+			inputNoticeContent(event: any): void {
 				let that = this;
 
 				that.setNoticeContent = event.target.value;
@@ -456,7 +591,7 @@
 												.update({
 													'noticeList': noticeList
 												})
-												.then((res) => {
+												.then(() => {
 													that.onClickSetNoticeMask();
 													uni.hideLoading();
 													uni.showToast({
@@ -464,13 +599,13 @@
 														icon: "none"
 													})
 												})
-												.catch((err) => {
+												.catch(() => {
 													that.onClickSetNoticeMask();
 													uni.hideLoading();
 												})
 										}
 									})
-									.catch((err) => {
+									.catch(() => {
 										that.onClickSetNoticeMask();
 										uni.hideLoading();
 									})
@@ -515,9 +650,8 @@
 						title: '生成中...',
 						mask: true
 					})
-					let randomJokeRes: any = await uni.request({
-						url: 'https://api.vvhan.com/api/joke?type=json'
-					});
+					let httpUrl = 'https://api.vvhan.com/api/joke?type=json';
+					let randomJokeRes: AnyObject = await that.httpRequest(httpUrl);
 
 					if (randomJokeRes && randomJokeRes.data && randomJokeRes.data.success) {
 						let joke: string = randomJokeRes.data.joke;
@@ -544,9 +678,8 @@
 						title: '生成中...',
 						mask: true
 					})
-					let randomSweetWorldRes: any = await uni.request({
-						url: 'https://api.vvhan.com/api/love?type=json'
-					});
+					let httpUrl = 'https://api.vvhan.com/api/love?type=json';
+					let randomSweetWorldRes: AnyObject = await that.httpRequest(httpUrl);
 
 					if (randomSweetWorldRes && randomSweetWorldRes.data && randomSweetWorldRes.data.success) {
 						that.otherFunctionTitle = "随机情话";
@@ -659,9 +792,9 @@
 						title: '生成中...',
 						mask: true
 					})
-					let fishCalendarRes: AnyObject = await uni.request({
-						url: 'https://api.vvhan.com/api/moyu?type=json'
-					})
+					let httpUrl = 'https://api.vvhan.com/api/moyu?type=json';
+					let fishCalendarRes: AnyObject = await that.httpRequest(httpUrl);
+
 
 					uni.hideLoading();
 					if (fishCalendarRes && fishCalendarRes.data && fishCalendarRes.data.url) {

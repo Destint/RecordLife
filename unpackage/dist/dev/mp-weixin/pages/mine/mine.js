@@ -67,6 +67,20 @@ const _sfc_main = {
       } catch (e) {
       }
     },
+    httpRequest(url, data) {
+      return new Promise((resolve) => {
+        common_vendor.index.request({
+          url,
+          data,
+          success: (res) => {
+            resolve(res);
+          },
+          fail: () => {
+            resolve(void 0);
+          }
+        });
+      });
+    },
     async getCalendarInfo() {
       let that = this;
       try {
@@ -75,15 +89,14 @@ const _sfc_main = {
         let calendarCache = common_vendor.index.getStorageSync(app.globalData.calendarCacheName);
         if (calendarCache && calendarCache.date === currentDate)
           return;
-        let calendarRes = await common_vendor.index.request({
-          url: "https://api.djapi.cn/wannianli/get",
-          data: {
-            date: currentDate,
-            cn_to_unicode: "1",
-            token: "37555a616248cb486ca0e60c10eca164",
-            datatype: "json"
-          }
-        });
+        let httpUrl = "https://api.djapi.cn/wannianli/get";
+        let httpData = {
+          date: currentDate,
+          cn_to_unicode: "1",
+          token: "37555a616248cb486ca0e60c10eca164",
+          datatype: "json"
+        };
+        let calendarRes = await that.httpRequest(httpUrl, httpData);
         let calendarInfo = calendarRes.data.Result;
         let calendar = {};
         calendar.date = currentDate;
@@ -100,24 +113,114 @@ const _sfc_main = {
       } catch (e) {
       }
     },
+    chooseImage(count) {
+      return new Promise((resolve) => {
+        common_vendor.index.chooseImage({
+          count,
+          sizeType: ["compressed"],
+          sourceType: ["album"],
+          success: (res) => {
+            resolve(res);
+          },
+          fail: () => {
+            resolve(void 0);
+          }
+        });
+      });
+    },
+    compressImage(src) {
+      return new Promise((resolve) => {
+        common_vendor.index.compressImage({
+          src,
+          quality: 80,
+          success: (res) => {
+            resolve(res.tempFilePath);
+          },
+          fail: () => {
+            resolve(src);
+          }
+        });
+      });
+    },
+    getImageInfo(src) {
+      return new Promise((resolve) => {
+        common_vendor.index.getImageInfo({
+          src,
+          success: (res) => {
+            resolve(res);
+          },
+          fail: () => {
+            resolve(void 0);
+          }
+        });
+      });
+    },
+    async compressImgList(imgList) {
+      let that = this;
+      try {
+        let compressImgList = [];
+        for (let i = 0; i < imgList.length; i++) {
+          if (imgList[i].size / 1024 < 500) {
+            compressImgList.push(imgList[i].path);
+            continue;
+          }
+          let imageInfo = await that.getImageInfo(imgList[i].path);
+          if (!imageInfo)
+            continue;
+          let p = new Promise((resolve) => {
+            const selectorQuery = common_vendor.index.createSelectorQuery();
+            selectorQuery.select("#myCanvas").fields({
+              node: true,
+              size: true
+            }).exec((res) => {
+              const canvas = res[0].node;
+              const ctx = canvas.getContext("2d");
+              const ratio = imageInfo.height / imageInfo.width;
+              canvas.width = imageInfo.width > 750 ? 750 : imageInfo.width;
+              canvas.height = canvas.width * ratio;
+              let img = canvas.createImage();
+              img.src = imageInfo.path;
+              img.onload = () => {
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                wx.canvasToTempFilePath({
+                  canvas,
+                  fileType: "jpg",
+                  success: (fileRes) => {
+                    compressImgList.push(fileRes.tempFilePath);
+                    resolve(true);
+                  },
+                  fail: () => {
+                    resolve(true);
+                  }
+                }, this);
+              };
+              img.onerror = () => {
+                resolve(true);
+              };
+            });
+          });
+          await p;
+        }
+        return compressImgList;
+      } catch (e) {
+      }
+    },
     async onClickSetAvatar() {
       let that = this;
       try {
-        let imageRes = await common_vendor.index.chooseImage({
-          count: 1,
-          sizeType: ["compressed"],
-          sourceType: ["album"]
-        });
+        let imageRes = await that.chooseImage(1);
+        if (!imageRes)
+          return;
         common_vendor.index.showLoading({
           title: "\u8BBE\u7F6E\u4E2D...",
           mask: true
         });
-        let chooseImageList = imageRes.tempFilePaths;
-        let compressRes = await common_vendor.index.compressImage({
-          src: chooseImageList[0],
-          quality: 80
-        });
-        chooseImageList[0] = compressRes.tempFilePath;
+        let chooseImageList = imageRes.tempFiles;
+        chooseImageList = await that.compressImgList(imageRes.tempFiles);
+        for (let i = 0; i < chooseImageList.length; i++) {
+          let compressRes = await that.compressImage(chooseImageList[i]);
+          chooseImageList[i] = compressRes;
+        }
         await common_vendor.pn.uploadFile({
           filePath: chooseImageList[0],
           cloudPath: app.globalData.wx_openid + ".avatar.jpg"
@@ -182,7 +285,7 @@ const _sfc_main = {
               });
               await db.collection("user").where("wx_openid == '" + app.globalData.wx_openid + "'").update({
                 "nickname": nickname
-              }).then((res2) => {
+              }).then(() => {
                 that.nickname = nickname;
                 common_vendor.index.setStorageSync(app.globalData.nicknameCacheName, nickname);
                 that.onClickSetNicknameMask();
@@ -191,7 +294,7 @@ const _sfc_main = {
                   title: "\u8BBE\u7F6E\u6210\u529F",
                   icon: "none"
                 });
-              }).catch((err) => {
+              }).catch(() => {
                 that.onClickSetNicknameMask();
                 common_vendor.index.hideLoading();
               });
@@ -250,19 +353,19 @@ const _sfc_main = {
                   noticeList.unshift(currentNotice);
                   await db.collection("notice").where("_id == '62f49bb51ff3ac000168404b'").update({
                     "noticeList": noticeList
-                  }).then((res3) => {
+                  }).then(() => {
                     that.onClickSetNoticeMask();
                     common_vendor.index.hideLoading();
                     common_vendor.index.showToast({
                       title: "\u8BBE\u7F6E\u6210\u529F",
                       icon: "none"
                     });
-                  }).catch((err) => {
+                  }).catch(() => {
                     that.onClickSetNoticeMask();
                     common_vendor.index.hideLoading();
                   });
                 }
-              }).catch((err) => {
+              }).catch(() => {
                 that.onClickSetNoticeMask();
                 common_vendor.index.hideLoading();
               });
@@ -295,9 +398,8 @@ const _sfc_main = {
           title: "\u751F\u6210\u4E2D...",
           mask: true
         });
-        let randomJokeRes = await common_vendor.index.request({
-          url: "https://api.vvhan.com/api/joke?type=json"
-        });
+        let httpUrl = "https://api.vvhan.com/api/joke?type=json";
+        let randomJokeRes = await that.httpRequest(httpUrl);
         if (randomJokeRes && randomJokeRes.data && randomJokeRes.data.success) {
           let joke = randomJokeRes.data.joke;
           let title = randomJokeRes.data.title;
@@ -318,9 +420,8 @@ const _sfc_main = {
           title: "\u751F\u6210\u4E2D...",
           mask: true
         });
-        let randomSweetWorldRes = await common_vendor.index.request({
-          url: "https://api.vvhan.com/api/love?type=json"
-        });
+        let httpUrl = "https://api.vvhan.com/api/love?type=json";
+        let randomSweetWorldRes = await that.httpRequest(httpUrl);
         if (randomSweetWorldRes && randomSweetWorldRes.data && randomSweetWorldRes.data.success) {
           that.otherFunctionTitle = "\u968F\u673A\u60C5\u8BDD";
           that.otherFunctionContent = randomSweetWorldRes.data.ishan;
@@ -388,14 +489,14 @@ const _sfc_main = {
       }
     },
     async onClickFishCalendar() {
+      let that = this;
       try {
         common_vendor.index.showLoading({
           title: "\u751F\u6210\u4E2D...",
           mask: true
         });
-        let fishCalendarRes = await common_vendor.index.request({
-          url: "https://api.vvhan.com/api/moyu?type=json"
-        });
+        let httpUrl = "https://api.vvhan.com/api/moyu?type=json";
+        let fishCalendarRes = await that.httpRequest(httpUrl);
         common_vendor.index.hideLoading();
         if (fishCalendarRes && fishCalendarRes.data && fishCalendarRes.data.url) {
           let imgList = [];

@@ -209,7 +209,7 @@
 			 * 监听输入的心愿
 			 * @param {object} event 输入对象
 			 */
-			inputWishContent(event): void {
+			inputWishContent(event: any): void {
 				let that = this;
 
 				that.addWishContent = event.target.value;
@@ -446,8 +446,6 @@
 			 * @param {Array} wishList 心愿列表
 			 */
 			handleWishDuration(wishList: AnyObject[]) {
-				let that = this;
-
 				try {
 					for (let i = 0; i < wishList.length; i++) {
 						let startDate = wishList[i].startDate;

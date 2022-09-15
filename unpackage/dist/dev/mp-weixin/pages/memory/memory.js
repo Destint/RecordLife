@@ -27,6 +27,17 @@ const _sfc_main = {
     };
   },
   async onLoad() {
+    let that = this;
+    common_vendor.index.showLoading({
+      title: "\u8F7D\u5165\u56DE\u5FC6\u4E2D",
+      mask: true
+    });
+    if (!app.globalData.wx_openid)
+      await common_commonFunctions.commonFunctions.wxLogin();
+    that.uploadAccessToCloud(app.globalData.wx_openid);
+    that.getNoticeFromCloud();
+    await that.getMemoryFromCloud(app.globalData.wx_openid, 0);
+    common_vendor.index.hideLoading();
   },
   async onPullDownRefresh() {
     let that = this;
