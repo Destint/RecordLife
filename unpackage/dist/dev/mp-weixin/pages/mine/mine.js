@@ -2,11 +2,11 @@
 var common_vendor = require("../../common/vendor.js");
 var common_commonFunctions = require("../../common/commonFunctions.js");
 const app = getApp();
-const db = common_vendor.rn.database();
-const serverDate = common_vendor.rn.importObject("serverDate", {
+const db = common_vendor.pn.database();
+const serverDate = common_vendor.pn.importObject("serverDate", {
   customUI: true
 });
-const handleCloudStorage = common_vendor.rn.importObject("handleCloudStorage", {
+const handleCloudStorage = common_vendor.pn.importObject("handleCloudStorage", {
   customUI: true
 });
 const _sfc_main = {
@@ -118,7 +118,7 @@ const _sfc_main = {
           quality: 80
         });
         chooseImageList[0] = compressRes.tempFilePath;
-        await common_vendor.rn.uploadFile({
+        await common_vendor.pn.uploadFile({
           filePath: chooseImageList[0],
           cloudPath: app.globalData.wx_openid + ".avatar.jpg"
         }).then(async (res) => {

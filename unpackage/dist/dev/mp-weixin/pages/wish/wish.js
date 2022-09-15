@@ -1,8 +1,8 @@
 "use strict";
 var common_vendor = require("../../common/vendor.js");
 var common_commonFunctions = require("../../common/commonFunctions.js");
-const db = common_vendor.rn.database();
-const serverDate = common_vendor.rn.importObject("serverDate", {
+const db = common_vendor.pn.database();
+const serverDate = common_vendor.pn.importObject("serverDate", {
   customUI: true
 });
 const app = getApp();

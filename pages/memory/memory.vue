@@ -146,6 +146,25 @@
 <script lang="ts">
 	import commonFunctions from "../../common/commonFunctions.js";
 	import locationSDK from "../../common/qqmap-wx-jssdk.js";
+	/** 单个回忆数据详情 */
+	interface memoryDetail {
+		/** 回忆id */
+		id: number;
+		/** 回忆标题 */
+		title: string;
+		/** 回忆内容 */
+		content: string;
+		/** 云图片路径列表 */
+		cloudPicPathList: string[];
+		/** 本地图片路径列表 */
+		localPicPathList: string[];
+		/** 回忆记录日期 */
+		date: string;
+		/** 回忆简易地址 */
+		simpleAddress: string;
+		/** 回忆详细地址 */
+		address: string;
+	}
 	const locationManager = new locationSDK({
 		key: '3XKBZ-WP4CG-KQVQM-IJ2WK-7QAE7-2ZFKZ'
 	}); // 位置管理器
@@ -162,29 +181,29 @@
 		data() {
 			return {
 				notice: uni.getStorageSync(app.globalData.noticeCacheName) ? uni.getStorageSync(app.globalData
-					.noticeCacheName) : '',
+					.noticeCacheName) as string : '',
 				memorySum: uni.getStorageSync(app.globalData.memorySumCacheName) ? uni.getStorageSync(app.globalData
-					.memorySumCacheName) : 0,
+					.memorySumCacheName) as number : 0,
 				memoryList: uni.getStorageSync(app.globalData.memoryCacheName) ? uni.getStorageSync(app.globalData
-					.memoryCacheName) : [],
+					.memoryCacheName) as memoryDetail[] : [],
 				isShowPopup: false,
-				memoryDetail: {},
+				memoryDetail: undefined as memoryDetail,
 				isShowMemoryDetail: false,
 				isShowAddMemory: false
 			};
 		},
 		async onLoad() {
-			let that = this;
+			// let that = this;
 
-			uni.showLoading({
-				title: '载入回忆中',
-				mask: true
-			})
-			if (!app.globalData.wx_openid) await commonFunctions.wxLogin();
-			that.uploadAccessToCloud(app.globalData.wx_openid);
-			that.getNoticeFromCloud();
-			await that.getMemoryFromCloud(app.globalData.wx_openid, 0);
-			uni.hideLoading();
+			// uni.showLoading({
+			// 	title: '载入回忆中',
+			// 	mask: true
+			// })
+			// if (!app.globalData.wx_openid) await commonFunctions.wxLogin();
+			// that.uploadAccessToCloud(app.globalData.wx_openid);
+			// that.getNoticeFromCloud();
+			// await that.getMemoryFromCloud(app.globalData.wx_openid, 0);
+			// uni.hideLoading();
 		},
 		async onPullDownRefresh() {
 			let that = this;
@@ -310,7 +329,7 @@
 						.get()
 						.then((res) => {
 							if (res.result.errCode === 0) {
-								let allMemory: AnyObject[] = res.result.data[0] ? res.result.data[0]
+								let allMemory: memoryDetail[] = res.result.data[0] ? res.result.data[0]
 									.memoryList : [];
 								let currentMemory = allMemory.slice(currentIndex, currentIndex + 15);
 								let memorySum = allMemory.length;
@@ -332,7 +351,7 @@
 			 * 点击回忆单元
 			 * @param {object} memory 回忆
 			 */
-			onClickMemoryCell(memory: AnyObject): void {
+			onClickMemoryCell(memory: memoryDetail): void {
 				let that = this;
 
 				that.isShowPopup = true;
@@ -341,9 +360,9 @@
 			},
 			/**
 			 * 点击编辑回忆
-			 * @param {object} memory 回忆
+			 * @param {memoryDetail} memory 回忆
 			 */
-			onClickEditorMemory(memory: AnyObject): void {
+			onClickEditorMemory(memory: memoryDetail): void {
 				let that = this;
 
 				try {
@@ -364,13 +383,13 @@
 
 				that.isShowPopup = true;
 				that.memoryDetail = {
+					id: 0,
 					title: '',
+					content: '',
 					localPicPathList: [],
 					cloudPicPathList: [],
-					content: '',
 					address: '',
 					simpleAddress: '',
-					id: 0,
 					date: ''
 				};
 				that.isShowAddMemory = true;
@@ -383,7 +402,7 @@
 
 				that.isShowMemoryDetail = false;
 				that.isShowPopup = false;
-				that.memoryDetail = {};
+				that.memoryDetail = undefined;
 			},
 			/**
 			 * 预览回忆单元的图片
@@ -413,7 +432,7 @@
 			 * 监听输入的回忆标题
 			 * @param {object} event 输入对象
 			 */
-			inputMemoryTitle(event): void {
+			inputMemoryTitle(event: any): void {
 				let that = this;
 
 				that.memoryDetail.title = event.target.value;
@@ -425,6 +444,43 @@
 				let that = this;
 
 				that.memoryDetail.localPicPathList.splice(index, 1);
+			},
+			/**
+			 * 封装自带的选择图片API
+			 * @@param {number} count 选择的图片个数
+			 */
+			chooseImage(count: number) {
+				return new Promise((resolve) => {
+					uni.chooseImage({
+						count: count,
+						sizeType: ['compressed'],
+						sourceType: ['album'],
+						success: (res) => {
+							resolve(res);
+						},
+						fail: () => {
+							resolve(undefined);
+						}
+					});
+				});
+			},
+			/**
+			 * 封装自带的压缩图片的API
+			 * @@param {string} src 图片地址
+			 */
+			compressImage(src: string): Promise < string > {
+				return new Promise((resolve) => {
+					uni.compressImage({
+						src: src,
+						quality: 80,
+						success: (res) => {
+							resolve(res.tempFilePath);
+						},
+						fail: () => {
+							resolve(src);
+						}
+					});
+				});
 			},
 			/**
 			 * 点击添加图片
@@ -441,11 +497,9 @@
 							icon: "none"
 						})
 					} else {
-						let imageRes: any = await uni.chooseImage({
-							count: 5 - localPicPathList.length,
-							sizeType: ['compressed'],
-							sourceType: ['album']
-						})
+						let imageRes: AnyObject = await that.chooseImage(5 - localPicPathList.length);
+
+						if (!imageRes) return;
 						uni.showLoading({
 							title: '图片选择中...',
 							mask: true
@@ -454,17 +508,31 @@
 
 						chooseImageList = await that.compressImgList(imageRes.tempFiles);
 						for (let i = 0; i < chooseImageList.length; i++) {
-							let compressRes: any = await uni.compressImage({
-								src: chooseImageList[i],
-								quality: 80
-							});
+							let compressRes = await that.compressImage(chooseImageList[i]);
 
-							chooseImageList[i] = compressRes.tempFilePath;
+							chooseImageList[i] = compressRes;
 						}
 						that.memoryDetail.localPicPathList = localPicPathList.concat(chooseImageList);
 						uni.hideLoading();
 					}
 				} catch (e) {}
+			},
+			/**
+			 * 封装自带的获取图片信息的API
+			 * @@param {string} src 图片地址
+			 */
+			getImageInfo(src: string) {
+				return new Promise((resolve) => {
+					uni.getImageInfo({
+						src: src,
+						success: (res) => {
+							resolve(res);
+						},
+						fail: () => {
+							resolve(undefined);
+						}
+					});
+				});
 			},
 			/**
 			 * 压缩图片列表
@@ -481,9 +549,9 @@
 							compressImgList.push(imgList[i].path);
 							continue;
 						}
-						let imageInfo: any = await uni.getImageInfo({
-							src: imgList[i].path
-						})
+						let imageInfo: AnyObject = await that.getImageInfo(imgList[i].path);
+
+						if (!imageInfo) continue;
 						let p: Promise < boolean > = new Promise((resolve) => {
 							const selectorQuery: any = uni.createSelectorQuery();
 
@@ -493,7 +561,7 @@
 									node: true,
 									size: true
 								})
-								.exec((res) => {
+								.exec((res: any) => {
 									const canvas: any = res[0].node;
 									const ctx = canvas.getContext('2d');
 									const ratio = imageInfo.height / imageInfo.width;
@@ -508,14 +576,14 @@
 										wx.canvasToTempFilePath({
 											canvas: canvas,
 											fileType: 'jpg',
-											success: (res) => {
-												compressImgList.push(res.tempFilePath);
+											success: (fileRes) => {
+												compressImgList.push(fileRes.tempFilePath);
 												resolve(true);
 											},
 											fail: () => {
 												resolve(true);
 											}
-										}, that);
+										}, this);
 									}
 									img.onerror = () => {
 										resolve(true);
@@ -533,7 +601,7 @@
 			 * 监听输入的回忆内容
 			 * @param {object} event 输入对象
 			 */
-			inputMemoryContent(event): void {
+			inputMemoryContent(event: any): void {
 				let that = this;
 
 				that.memoryDetail.content = event.target.value;
@@ -549,7 +617,7 @@
 					content: '返回会清空当前正记录的回忆哦',
 					success: (res) => {
 						if (res.confirm) {
-							that.memoryDetail = {};
+							that.memoryDetail = undefined;
 							that.isShowAddMemory = false;
 							that.isShowPopup = false;
 						}
@@ -563,7 +631,7 @@
 				let that = this;
 
 				try {
-					let addMemory: AnyObject = that.memoryDetail;
+					let addMemory = that.memoryDetail;
 					if (addMemory.title === '') {
 						uni.showToast({
 							title: '回忆标题不能为空',
@@ -631,7 +699,7 @@
 					await that.setMemoryIdAndDate();
 					await that.uploadLocalFileToCloud();
 					await that.uploadMemoryToCloud();
-					that.memoryDetail = {};
+					that.memoryDetail = undefined;
 					that.isShowAddMemory = false;
 					that.isShowPopup = false;
 					isWritingMemory = false;
@@ -670,7 +738,7 @@
 									resolve(true);
 								})
 							},
-							fail: (e) => {
+							fail: () => {
 								resolve(true)
 							}
 						})
@@ -694,7 +762,7 @@
 								latitude: latitude,
 								longitude: longitude
 							},
-							success: async (res) => {
+							success: async (res: any) => {
 								if (res && res.result) {
 									let address: string = res.result.address ? res.result.address :
 										''; // 详细地址
@@ -788,7 +856,7 @@
 							}).then((res) => {
 								that.memoryDetail.cloudPicPathList[i] = res.fileID;
 								resolve(true);
-							}).catch((err) => {
+							}).catch(() => {
 								that.memoryDetail.cloudPicPathList[i] = '';
 								resolve(true);
 							})
@@ -811,7 +879,7 @@
 						.get()
 						.then(async (res) => {
 							if (res.result.errCode === 0) {
-								let memoryList: AnyObject[] = res.result.data[0] ? res.result.data[0]
+								let memoryList: memoryDetail[] = res.result.data[0] ? res.result.data[0]
 									.memoryList : [];
 
 								memoryList.unshift(that.memoryDetail);
@@ -855,9 +923,9 @@
 			},
 			/**
 			 * 删除回忆
-			 * @param memory {object} 删除的回忆
+			 * @param memory {memoryDetail} 删除的回忆
 			 */
-			deleteMemory(memory: AnyObject): void {
+			deleteMemory(memory: memoryDetail): void {
 				if (!memory) return;
 
 				try {

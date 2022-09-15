@@ -9,7 +9,7 @@ module.exports = {
 	/**
 	 * 获取当前日期
 	 */
-	getCurrentDate() {
+	async getCurrentDate() {
 		return {
 			errCode: 0,
 			errMsg: '获取成功',

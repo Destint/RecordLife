@@ -5,13 +5,13 @@ var common_qqmapWxJssdk = require("../../common/qqmap-wx-jssdk.js");
 const locationManager = new common_qqmapWxJssdk.QQMapWX({
   key: "3XKBZ-WP4CG-KQVQM-IJ2WK-7QAE7-2ZFKZ"
 });
-const serverDate = common_vendor.rn.importObject("serverDate", {
+const serverDate = common_vendor.pn.importObject("serverDate", {
   customUI: true
 });
-const handleMemory = common_vendor.rn.importObject("handleMemory", {
+const handleMemory = common_vendor.pn.importObject("handleMemory", {
   customUI: true
 });
-const db = common_vendor.rn.database();
+const db = common_vendor.pn.database();
 const app = getApp();
 var isWritingMemory = false;
 const _sfc_main = {
@@ -21,23 +21,12 @@ const _sfc_main = {
       memorySum: common_vendor.index.getStorageSync(app.globalData.memorySumCacheName) ? common_vendor.index.getStorageSync(app.globalData.memorySumCacheName) : 0,
       memoryList: common_vendor.index.getStorageSync(app.globalData.memoryCacheName) ? common_vendor.index.getStorageSync(app.globalData.memoryCacheName) : [],
       isShowPopup: false,
-      memoryDetail: {},
+      memoryDetail: void 0,
       isShowMemoryDetail: false,
       isShowAddMemory: false
     };
   },
   async onLoad() {
-    let that = this;
-    common_vendor.index.showLoading({
-      title: "\u8F7D\u5165\u56DE\u5FC6\u4E2D",
-      mask: true
-    });
-    if (!app.globalData.wx_openid)
-      await common_commonFunctions.commonFunctions.wxLogin();
-    that.uploadAccessToCloud(app.globalData.wx_openid);
-    that.getNoticeFromCloud();
-    await that.getMemoryFromCloud(app.globalData.wx_openid, 0);
-    common_vendor.index.hideLoading();
   },
   async onPullDownRefresh() {
     let that = this;
@@ -167,13 +156,13 @@ const _sfc_main = {
       let that = this;
       that.isShowPopup = true;
       that.memoryDetail = {
+        id: 0,
         title: "",
+        content: "",
         localPicPathList: [],
         cloudPicPathList: [],
-        content: "",
         address: "",
         simpleAddress: "",
-        id: 0,
         date: ""
       };
       that.isShowAddMemory = true;
@@ -182,7 +171,7 @@ const _sfc_main = {
       let that = this;
       that.isShowMemoryDetail = false;
       that.isShowPopup = false;
-      that.memoryDetail = {};
+      that.memoryDetail = void 0;
     },
     onPreviewMemoryCellPic(location, index) {
       let that = this;
@@ -211,6 +200,35 @@ const _sfc_main = {
       let that = this;
       that.memoryDetail.localPicPathList.splice(index, 1);
     },
+    chooseImage(count) {
+      return new Promise((resolve) => {
+        common_vendor.index.chooseImage({
+          count,
+          sizeType: ["compressed"],
+          sourceType: ["album"],
+          success: (res) => {
+            resolve(res);
+          },
+          fail: () => {
+            resolve(void 0);
+          }
+        });
+      });
+    },
+    compressImage(src) {
+      return new Promise((resolve) => {
+        common_vendor.index.compressImage({
+          src,
+          quality: 80,
+          success: (res) => {
+            resolve(res.tempFilePath);
+          },
+          fail: () => {
+            resolve(src);
+          }
+        });
+      });
+    },
     async onClickAddPic() {
       let that = this;
       try {
@@ -221,11 +239,9 @@ const _sfc_main = {
             icon: "none"
           });
         } else {
-          let imageRes = await common_vendor.index.chooseImage({
-            count: 5 - localPicPathList.length,
-            sizeType: ["compressed"],
-            sourceType: ["album"]
-          });
+          let imageRes = await that.chooseImage(5 - localPicPathList.length);
+          if (!imageRes)
+            return;
           common_vendor.index.showLoading({
             title: "\u56FE\u7247\u9009\u62E9\u4E2D...",
             mask: true
@@ -233,17 +249,27 @@ const _sfc_main = {
           let chooseImageList = imageRes.tempFiles;
           chooseImageList = await that.compressImgList(imageRes.tempFiles);
           for (let i = 0; i < chooseImageList.length; i++) {
-            let compressRes = await common_vendor.index.compressImage({
-              src: chooseImageList[i],
-              quality: 80
-            });
-            chooseImageList[i] = compressRes.tempFilePath;
+            let compressRes = await that.compressImage(chooseImageList[i]);
+            chooseImageList[i] = compressRes;
           }
           that.memoryDetail.localPicPathList = localPicPathList.concat(chooseImageList);
           common_vendor.index.hideLoading();
         }
       } catch (e) {
       }
+    },
+    getImageInfo(src) {
+      return new Promise((resolve) => {
+        common_vendor.index.getImageInfo({
+          src,
+          success: (res) => {
+            resolve(res);
+          },
+          fail: () => {
+            resolve(void 0);
+          }
+        });
+      });
     },
     async compressImgList(imgList) {
       let that = this;
@@ -254,9 +280,9 @@ const _sfc_main = {
             compressImgList.push(imgList[i].path);
             continue;
           }
-          let imageInfo = await common_vendor.index.getImageInfo({
-            src: imgList[i].path
-          });
+          let imageInfo = await that.getImageInfo(imgList[i].path);
+          if (!imageInfo)
+            continue;
           let p = new Promise((resolve) => {
             const selectorQuery = common_vendor.index.createSelectorQuery();
             selectorQuery.select("#myCanvas").fields({
@@ -275,14 +301,14 @@ const _sfc_main = {
                 wx.canvasToTempFilePath({
                   canvas,
                   fileType: "jpg",
-                  success: (res2) => {
-                    compressImgList.push(res2.tempFilePath);
+                  success: (fileRes) => {
+                    compressImgList.push(fileRes.tempFilePath);
                     resolve(true);
                   },
                   fail: () => {
                     resolve(true);
                   }
-                }, that);
+                }, this);
               };
               img.onerror = () => {
                 resolve(true);
@@ -306,7 +332,7 @@ const _sfc_main = {
         content: "\u8FD4\u56DE\u4F1A\u6E05\u7A7A\u5F53\u524D\u6B63\u8BB0\u5F55\u7684\u56DE\u5FC6\u54E6",
         success: (res) => {
           if (res.confirm) {
-            that.memoryDetail = {};
+            that.memoryDetail = void 0;
             that.isShowAddMemory = false;
             that.isShowPopup = false;
           }
@@ -377,7 +403,7 @@ const _sfc_main = {
         await that.setMemoryIdAndDate();
         await that.uploadLocalFileToCloud();
         await that.uploadMemoryToCloud();
-        that.memoryDetail = {};
+        that.memoryDetail = void 0;
         that.isShowAddMemory = false;
         that.isShowPopup = false;
         isWritingMemory = false;
@@ -411,7 +437,7 @@ const _sfc_main = {
                 resolve(true);
               });
             },
-            fail: (e) => {
+            fail: () => {
               resolve(true);
             }
           });
@@ -495,13 +521,13 @@ const _sfc_main = {
         let proArr = [];
         for (let i = 0; i < localPicPathList.length; i++) {
           proArr.push(new Promise((resolve) => {
-            common_vendor.rn.uploadFile({
+            common_vendor.pn.uploadFile({
               filePath: localPicPathList[i],
               cloudPath: app.globalData.wx_openid + "." + currentId + i + ".jpg"
             }).then((res) => {
               that.memoryDetail.cloudPicPathList[i] = res.fileID;
               resolve(true);
-            }).catch((err) => {
+            }).catch(() => {
               that.memoryDetail.cloudPicPathList[i] = "";
               resolve(true);
             });

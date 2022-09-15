@@ -1,9 +1,9 @@
 "use strict";
 var common_vendor = require("./vendor.js");
-const wxCloudFunctions = common_vendor.rn.importObject("wxCloudFunctions", {
+const wxCloudFunctions = common_vendor.pn.importObject("wxCloudFunctions", {
   customUI: true
 });
-const db = common_vendor.rn.database();
+const db = common_vendor.pn.database();
 const app = getApp();
 const wxLogin = async () => {
   let loginState = -1;
