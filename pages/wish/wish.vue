@@ -56,6 +56,21 @@
 
 <script lang="ts">
 	import commonFunctions from "../../common/commonFunctions.js";
+	/** 单个心愿数据详情 */
+	interface wishDetail {
+		/** 心愿id */
+		id: number;
+		/** 心愿内容 */
+		content: string;
+		/** 心愿开始时间 */
+		startDate: string;
+		/** 心愿结束时间 */
+		endDate: string;
+		/** 心愿状态 */
+		state: number;
+		/** 心愿持续时间 */
+		duration ? : string;
+	}
 	const db = uniCloud.database(); // 云数据库
 	const serverDate = uniCloud.importObject('serverDate', {
 		customUI: true
@@ -66,11 +81,11 @@
 			return {
 				isShowPopup: false,
 				notice: uni.getStorageSync(app.globalData.noticeCacheName) ? uni.getStorageSync(app.globalData
-					.noticeCacheName) : '',
+					.noticeCacheName) as string : '',
 				wishSum: uni.getStorageSync(app.globalData.wishSumCacheName) ? uni.getStorageSync(app.globalData
-					.wishSumCacheName) : 0,
+					.wishSumCacheName) as number : 0,
 				wishList: uni.getStorageSync(app.globalData.wishCacheName) ? uni.getStorageSync(app.globalData
-					.wishCacheName) : [],
+					.wishCacheName) as wishDetail[] : [],
 				isShowAddWishView: false,
 				addWishContent: ''
 			};
@@ -168,7 +183,7 @@
 						.get()
 						.then((res) => {
 							if (res.result.errCode === 0) {
-								let allWish: AnyObject[] = res.result.data[0] ? res.result.data[0].wishList : [];
+								let allWish: wishDetail[] = res.result.data[0] ? res.result.data[0].wishList : [];
 								let currentWish = allWish.slice(currentIndex, currentIndex + 30);
 								let wishSum = allWish.length;
 
@@ -250,7 +265,13 @@
 										showCancel: false
 									})
 								} else {
-									let wishObj: AnyObject = {};
+									let wishObj: wishDetail = {
+										id: 0,
+										content: '',
+										startDate: '',
+										endDate: '',
+										state: 0
+									};
 									let currentDateInfo = await serverDate.getCurrentDate();
 
 									wishObj.id = currentDateInfo.data.currentId;
@@ -264,7 +285,7 @@
 										.get()
 										.then(async (res) => {
 											if (res.result.errCode === 0) {
-												let wishList: AnyObject[] = res.result.data[0] ?
+												let wishList: wishDetail[] = res.result.data[0] ?
 													res.result.data[0].wishList : [];
 
 												wishList.unshift(wishObj);
@@ -331,9 +352,9 @@
 			},
 			/**
 			 * 点击编辑心愿事件
-			 * @param {AnyObject} wish 编辑的心愿
+			 * @param {wishDetail} wish 编辑的心愿
 			 */
-			onClickEditorWish(wish: AnyObject): void {
+			onClickEditorWish(wish: wishDetail): void {
 				let that = this;
 
 				try {
@@ -360,10 +381,10 @@
 			},
 			/**
 			 * 编辑心愿
-			 * @param {AnyObject} wish 编辑的心愿
+			 * @param {wishDetail} wish 编辑的心愿
 			 * @param {number} type 编辑类型(0: 删除 1: 完成 -1: 放弃)
 			 */
-			editorWish(wish: AnyObject, type: number): void {
+			editorWish(wish: wishDetail, type: number): void {
 				let that = this;
 
 				try {
@@ -384,7 +405,7 @@
 									.get()
 									.then(async (res) => {
 										if (res.result.errCode === 0) {
-											let wishList: AnyObject[] = res.result.data[0] ?
+											let wishList: wishDetail[] = res.result.data[0] ?
 												res.result.data[0].wishList : [];
 											let wishIndex: number = wishList.findIndex(function(
 												object) {
@@ -445,7 +466,7 @@
 			 * 处理心愿结束的持续时间
 			 * @param {Array} wishList 心愿列表
 			 */
-			handleWishDuration(wishList: AnyObject[]) {
+			handleWishDuration(wishList: wishDetail[]) {
 				try {
 					for (let i = 0; i < wishList.length; i++) {
 						let startDate = wishList[i].startDate;
