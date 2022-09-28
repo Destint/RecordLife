@@ -3,7 +3,7 @@
 		onLaunch() {
 			let that = this;
 
-			// that.checkForUpdate();
+			that.checkForUpdate();
 		},
 		methods: {
 			/**
