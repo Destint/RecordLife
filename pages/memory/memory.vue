@@ -10,6 +10,12 @@
 			</view>
 			<view class="view-box-memorySum">
 				<text class="text-content-whiteThirty">全部回忆({{memorySum}})</text>
+				<view class="view-box-search">
+					<input class="input-area-searchMemory" maxlength="6" placeholder="搜索" :value="searchMemory"
+						placeholder-style="color: rgba(254, 255, 2255, 0.5);" @input="inputSearchMemory" />
+					<image class="image-icon-search" src="../../static/img_search_icon.png"
+						@click="onClickSearchMemory"></image>
+				</view>
 			</view>
 		</view>
 		<block v-if="memorySum > 0">
@@ -189,7 +195,8 @@
 				isShowPopup: false,
 				memoryDetail: undefined as memoryDetail,
 				isShowMemoryDetail: false,
-				isShowAddMemory: false
+				isShowAddMemory: false,
+				searchMemory: ''
 			};
 		},
 		async onLoad() {
@@ -225,6 +232,7 @@
 			try {
 				let currentIndex: number = that.memoryList.length;
 
+				if (that.searchMemory) return;
 				if (currentIndex === that.memorySum) {
 					uni.showToast({
 						title: '回忆到底啦',
@@ -342,6 +350,7 @@
 								} else {
 									that.memoryList = that.memoryList.concat(currentMemory);
 								}
+								that.searchMemory = '';
 							}
 						})
 						.catch()
@@ -893,6 +902,7 @@
 										.then(() => {
 											that.memoryList = memoryList.slice(0, 15);
 											that.memorySum = memoryList.length;
+											that.searchMemory = '';
 											uni.setStorageSync(app.globalData.memoryCacheName,
 												memoryList.slice(0, 15));
 											uni.setStorageSync(app.globalData.memorySumCacheName,
@@ -909,6 +919,7 @@
 										.then(() => {
 											that.memoryList = memoryList.slice(0, 15);
 											that.memorySum = memoryList.length;
+											that.searchMemory = '';
 											uni.setStorageSync(app.globalData.memoryCacheName,
 												memoryList.slice(0, 15));
 											uni.setStorageSync(app.globalData.memorySumCacheName,
@@ -946,6 +957,7 @@
 
 								if (result.errCode === 0) {
 									that.memoryList = result.data.memoryList.slice(0, 15);
+									that.searchMemory = '';
 									that.memorySum = result.data.memoryList.length;
 									uni.setStorageSync(app.globalData.memoryCacheName,
 										result.data.memoryList.slice(0, 15));
@@ -966,6 +978,56 @@
 							}
 						}
 					})
+				} catch (e) {}
+			},
+
+			/**
+			 * 监听输入的回忆搜索内容
+			 * @param {object} event 输入对象
+			 */
+			inputSearchMemory(event: any): void {
+				let that = this;
+
+				that.searchMemory = event.target.value;
+			},
+
+			/**
+			 * 点击搜索回忆事件
+			 */
+			async onClickSearchMemory(): Promise < void > {
+				let that = this;
+
+				try {
+					let searchMemoryList: memoryDetail[] = [];
+
+					if (!that.searchMemory) {
+						that.memoryList = uni.getStorageSync(app.globalData.memoryCacheName) ? uni.getStorageSync(app
+							.globalData.memoryCacheName) : [];
+						return;
+					}
+					uni.showLoading({
+						title: '搜索回忆中',
+						mask: true
+					})
+					await db
+						.collection('memory')
+						.where("wx_openid == '" + app.globalData.wx_openid + "'")
+						.get()
+						.then(async (res) => {
+							if (res.result.errCode === 0) {
+								let memoryList: memoryDetail[] = res.result.data[0] ? res.result.data[0]
+									.memoryList : [];
+
+								for (let i = 0; i < memoryList.length; i++) {
+									if (memoryList[i].title.indexOf(that.searchMemory) !== -1 || memoryList[i]
+										.content.indexOf(that.searchMemory) !== -1) searchMemoryList.push(
+										memoryList[i]);
+								}
+								that.memoryList = searchMemoryList;
+							}
+						})
+						.catch()
+					uni.hideLoading();
 				} catch (e) {}
 			}
 		}
@@ -1015,6 +1077,33 @@
 		margin: 30rpx 35rpx 100rpx 35rpx;
 		display: flex;
 		align-items: center;
+	}
+
+	.view-box-search {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		width: 250rpx;
+		height: 50rpx;
+		right: 0rpx;
+		border: 1rpx solid #FEFFFF;
+		border-radius: 50rpx;
+	}
+
+	.input-area-searchMemory {
+		position: relative;
+		margin: 0rpx 60rpx 0rpx 10rpx;
+		font-size: 30rpx;
+		width: 100%;
+		color: #FEFFFF;
+	}
+
+	.image-icon-search {
+		position: absolute;
+		right: 10rpx;
+		width: 40rpx;
+		height: 40rpx;
+		flex-shrink: 0;
 	}
 
 	.view-box-noMemoryTip {

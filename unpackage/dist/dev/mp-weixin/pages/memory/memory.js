@@ -23,7 +23,8 @@ const _sfc_main = {
       isShowPopup: false,
       memoryDetail: void 0,
       isShowMemoryDetail: false,
-      isShowAddMemory: false
+      isShowAddMemory: false,
+      searchMemory: ""
     };
   },
   async onLoad() {
@@ -57,6 +58,8 @@ const _sfc_main = {
     let that = this;
     try {
       let currentIndex = that.memoryList.length;
+      if (that.searchMemory)
+        return;
       if (currentIndex === that.memorySum) {
         common_vendor.index.showToast({
           title: "\u56DE\u5FC6\u5230\u5E95\u5566",
@@ -137,6 +140,7 @@ const _sfc_main = {
             } else {
               that.memoryList = that.memoryList.concat(currentMemory);
             }
+            that.searchMemory = "";
           }
         }).catch();
       } catch (e) {
@@ -564,6 +568,7 @@ const _sfc_main = {
               }).then(() => {
                 that.memoryList = memoryList.slice(0, 15);
                 that.memorySum = memoryList.length;
+                that.searchMemory = "";
                 common_vendor.index.setStorageSync(app.globalData.memoryCacheName, memoryList.slice(0, 15));
                 common_vendor.index.setStorageSync(app.globalData.memorySumCacheName, memoryList.length);
               }).catch();
@@ -573,6 +578,7 @@ const _sfc_main = {
               }).then(() => {
                 that.memoryList = memoryList.slice(0, 15);
                 that.memorySum = memoryList.length;
+                that.searchMemory = "";
                 common_vendor.index.setStorageSync(app.globalData.memoryCacheName, memoryList.slice(0, 15));
                 common_vendor.index.setStorageSync(app.globalData.memorySumCacheName, memoryList.length);
               }).catch();
@@ -599,6 +605,7 @@ const _sfc_main = {
               let result = await handleMemory.deleteMemory(app.globalData.wx_openid, memory.id);
               if (result.errCode === 0) {
                 that.memoryList = result.data.memoryList.slice(0, 15);
+                that.searchMemory = "";
                 that.memorySum = result.data.memoryList.length;
                 common_vendor.index.setStorageSync(app.globalData.memoryCacheName, result.data.memoryList.slice(0, 15));
                 common_vendor.index.setStorageSync(app.globalData.memorySumCacheName, result.data.memoryList.length);
@@ -619,6 +626,36 @@ const _sfc_main = {
         });
       } catch (e) {
       }
+    },
+    inputSearchMemory(event) {
+      let that = this;
+      that.searchMemory = event.target.value;
+    },
+    async onClickSearchMemory() {
+      let that = this;
+      try {
+        let searchMemoryList = [];
+        if (!that.searchMemory) {
+          that.memoryList = common_vendor.index.getStorageSync(app.globalData.memoryCacheName) ? common_vendor.index.getStorageSync(app.globalData.memoryCacheName) : [];
+          return;
+        }
+        common_vendor.index.showLoading({
+          title: "\u641C\u7D22\u56DE\u5FC6\u4E2D",
+          mask: true
+        });
+        await db.collection("memory").where("wx_openid == '" + app.globalData.wx_openid + "'").get().then(async (res) => {
+          if (res.result.errCode === 0) {
+            let memoryList = res.result.data[0] ? res.result.data[0].memoryList : [];
+            for (let i = 0; i < memoryList.length; i++) {
+              if (memoryList[i].title.indexOf(that.searchMemory) !== -1 || memoryList[i].content.indexOf(that.searchMemory) !== -1)
+                searchMemoryList.push(memoryList[i]);
+            }
+            that.memoryList = searchMemoryList;
+          }
+        }).catch();
+        common_vendor.index.hideLoading();
+      } catch (e) {
+      }
     }
   }
 };
@@ -627,9 +664,12 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     a: "overflow:" + ($data.isShowPopup ? "hidden" : "visible"),
     b: common_vendor.t($data.notice),
     c: common_vendor.t($data.memorySum),
-    d: $data.memorySum > 0
+    d: $data.searchMemory,
+    e: common_vendor.o((...args) => $options.inputSearchMemory && $options.inputSearchMemory(...args)),
+    f: common_vendor.o((...args) => $options.onClickSearchMemory && $options.onClickSearchMemory(...args)),
+    g: $data.memorySum > 0
   }, $data.memorySum > 0 ? {
-    e: common_vendor.f($data.memoryList, (item, index, i0) => {
+    h: common_vendor.f($data.memoryList, (item, index, i0) => {
       return common_vendor.e({
         a: common_vendor.t(item.title),
         b: common_vendor.t(item.content),
@@ -651,14 +691,14 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       });
     })
   } : {}, {
-    f: common_vendor.o((...args) => $options.onClickAddMemory && $options.onClickAddMemory(...args)),
-    g: $data.isShowMemoryDetail === true
+    i: common_vendor.o((...args) => $options.onClickAddMemory && $options.onClickAddMemory(...args)),
+    j: $data.isShowMemoryDetail === true
   }, $data.isShowMemoryDetail === true ? common_vendor.e({
-    h: common_vendor.o((...args) => $options.onClickMemoryDetailMask && $options.onClickMemoryDetailMask(...args)),
-    i: common_vendor.t($data.memoryDetail.title),
-    j: $data.memoryDetail.cloudPicPathList.length > 0
+    k: common_vendor.o((...args) => $options.onClickMemoryDetailMask && $options.onClickMemoryDetailMask(...args)),
+    l: common_vendor.t($data.memoryDetail.title),
+    m: $data.memoryDetail.cloudPicPathList.length > 0
   }, $data.memoryDetail.cloudPicPathList.length > 0 ? {
-    k: common_vendor.f($data.memoryDetail.cloudPicPathList, (item, index, i0) => {
+    n: common_vendor.f($data.memoryDetail.cloudPicPathList, (item, index, i0) => {
       return {
         a: item ? item : "../../static/img_empty_icon.png",
         b: common_vendor.o(($event) => $options.onPreviewMemoryCellPic("cloud", index)),
@@ -667,24 +707,24 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       };
     })
   } : {}, {
-    l: $data.memoryDetail.content
+    o: $data.memoryDetail.content
   }, $data.memoryDetail.content ? {
-    m: common_vendor.t($data.memoryDetail.content)
+    p: common_vendor.t($data.memoryDetail.content)
   } : {}, {
-    n: $data.memoryDetail.date
+    q: $data.memoryDetail.date
   }, $data.memoryDetail.date ? {
-    o: common_vendor.t($data.memoryDetail.date)
+    r: common_vendor.t($data.memoryDetail.date)
   } : {}, {
-    p: $data.memoryDetail.address && $data.memoryDetail.address !== " "
+    s: $data.memoryDetail.address && $data.memoryDetail.address !== " "
   }, $data.memoryDetail.address && $data.memoryDetail.address !== " " ? {
-    q: common_vendor.t($data.memoryDetail.address)
+    t: common_vendor.t($data.memoryDetail.address)
   } : {}) : {}, {
-    r: $data.isShowAddMemory === true
+    v: $data.isShowAddMemory === true
   }, $data.isShowAddMemory === true ? common_vendor.e({
-    s: common_vendor.o((...args) => $options.inputMemoryTitle && $options.inputMemoryTitle(...args)),
-    t: $data.memoryDetail.localPicPathList.length > 0
+    w: common_vendor.o((...args) => $options.inputMemoryTitle && $options.inputMemoryTitle(...args)),
+    x: $data.memoryDetail.localPicPathList.length > 0
   }, $data.memoryDetail.localPicPathList.length > 0 ? {
-    v: common_vendor.f($data.memoryDetail.localPicPathList, (item, index, i0) => {
+    y: common_vendor.f($data.memoryDetail.localPicPathList, (item, index, i0) => {
       return {
         a: item ? item : "../../static/img_empty_icon.png",
         b: common_vendor.o(($event) => $options.onPreviewMemoryCellPic("local", index)),
@@ -694,14 +734,14 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       };
     })
   } : {}, {
-    w: $data.memoryDetail.localPicPathList.length < 5
+    z: $data.memoryDetail.localPicPathList.length < 5
   }, $data.memoryDetail.localPicPathList.length < 5 ? {
-    x: common_vendor.s("margin-left:" + ($data.memoryDetail.localPicPathList.length > 0 ? "10rpx" : "0rpx") + ";"),
-    y: common_vendor.o((...args) => $options.onClickAddPic && $options.onClickAddPic(...args))
+    A: common_vendor.s("margin-left:" + ($data.memoryDetail.localPicPathList.length > 0 ? "10rpx" : "0rpx") + ";"),
+    B: common_vendor.o((...args) => $options.onClickAddPic && $options.onClickAddPic(...args))
   } : {}, {
-    z: common_vendor.o((...args) => $options.inputMemoryContent && $options.inputMemoryContent(...args)),
-    A: common_vendor.o((...args) => $options.onClickAddMemoryBack && $options.onClickAddMemoryBack(...args)),
-    B: common_vendor.o((...args) => $options.onClickAddMemoryWrite && $options.onClickAddMemoryWrite(...args))
+    C: common_vendor.o((...args) => $options.inputMemoryContent && $options.inputMemoryContent(...args)),
+    D: common_vendor.o((...args) => $options.onClickAddMemoryBack && $options.onClickAddMemoryBack(...args)),
+    E: common_vendor.o((...args) => $options.onClickAddMemoryWrite && $options.onClickAddMemoryWrite(...args))
   }) : {});
 }
 var MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__file", "C:/HBuilderX/projects/RecordLife/pages/memory/memory.vue"]]);

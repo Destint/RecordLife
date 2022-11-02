@@ -37,6 +37,30 @@
 		display: flex;
 		align-items: center;
 }
+.view-box-search {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		width: 250rpx;
+		height: 50rpx;
+		right: 0rpx;
+		border: 1rpx solid #FEFFFF;
+		border-radius: 50rpx;
+}
+.input-area-searchMemory {
+		position: relative;
+		margin: 0rpx 60rpx 0rpx 10rpx;
+		font-size: 30rpx;
+		width: 100%;
+		color: #FEFFFF;
+}
+.image-icon-search {
+		position: absolute;
+		right: 10rpx;
+		width: 40rpx;
+		height: 40rpx;
+		flex-shrink: 0;
+}
 .view-box-noMemoryTip {
 		position: absolute;
 		top: 50%;

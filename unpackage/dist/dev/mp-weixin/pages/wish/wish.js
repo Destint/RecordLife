@@ -151,7 +151,13 @@ const _sfc_main = {
                   showCancel: false
                 });
               } else {
-                let wishObj = {};
+                let wishObj = {
+                  id: 0,
+                  content: "",
+                  startDate: "",
+                  endDate: "",
+                  state: 0
+                };
                 let currentDateInfo = await serverDate.getCurrentDate();
                 wishObj.id = currentDateInfo.data.currentId;
                 wishObj.content = wish;

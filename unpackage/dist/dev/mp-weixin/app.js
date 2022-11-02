@@ -9,6 +9,8 @@ if (!Math) {
 }
 const _sfc_main = {
   onLaunch() {
+    let that = this;
+    that.checkForUpdate();
   },
   methods: {
     checkForUpdate() {

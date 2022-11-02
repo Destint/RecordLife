@@ -18,7 +18,7 @@
     }
   },
   "compileType": "miniprogram",
-  "libVersion": "2.25.1",
+  "libVersion": "",
   "appid": "wxd6b3ccc3b5ce077c",
   "projectname": "RecordLife",
   "condition": {
