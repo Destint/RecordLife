@@ -142,7 +142,7 @@
 				otherFunctionTitle: '',
 				otherFunctionContent: '',
 				isShowAboutApp: false,
-				aboutAppContent: '这是一个可以《留住回忆》的小程序。\n可选的需要小程序授权的功能：\n1、开启定位后，可在记录回忆时记下位置与天气。\n2、可从相册中选择想要的图片一同记录。\n如果您在使用小程序时遇到任何问题或者您对小程序有更好的建议或想法，欢迎通过《联系客服》功能来向开发者反馈。',
+				aboutAppContent: '因为你 所以有了我。\n可选的需要小程序授权的功能：\n1、开启定位后，可在记录回忆时记下位置与天气。\n2、可从相册中选择想要的图片一同记录。\n如果您在使用小程序时遇到任何问题或者您对小程序有更好的建议或想法，欢迎通过《联系客服》功能来向开发者反馈。',
 				isPraiseApp: uni.getStorageSync(app.globalData.isPraiseAppCacheName) ? uni.getStorageSync(app.globalData
 					.isPraiseAppCacheName) as boolean : false,
 				praiseAppSum: uni.getStorageSync(app.globalData.praiseAppSumCacheName) ? uni.getStorageSync(app.globalData

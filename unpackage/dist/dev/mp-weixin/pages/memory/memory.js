@@ -1,17 +1,17 @@
 "use strict";
-var common_vendor = require("../../common/vendor.js");
-var common_commonFunctions = require("../../common/commonFunctions.js");
-var common_qqmapWxJssdk = require("../../common/qqmap-wx-jssdk.js");
+const common_vendor = require("../../common/vendor.js");
+const common_commonFunctions = require("../../common/commonFunctions.js");
+const common_qqmapWxJssdk = require("../../common/qqmap-wx-jssdk.js");
 const locationManager = new common_qqmapWxJssdk.QQMapWX({
   key: "3XKBZ-WP4CG-KQVQM-IJ2WK-7QAE7-2ZFKZ"
 });
-const serverDate = common_vendor.pn.importObject("serverDate", {
+const serverDate = common_vendor.As.importObject("serverDate", {
   customUI: true
 });
-const handleMemory = common_vendor.pn.importObject("handleMemory", {
+const handleMemory = common_vendor.As.importObject("handleMemory", {
   customUI: true
 });
-const db = common_vendor.pn.database();
+const db = common_vendor.As.database();
 const app = getApp();
 var isWritingMemory = false;
 const _sfc_main = {
@@ -378,7 +378,9 @@ const _sfc_main = {
                 title: "\u8BB0\u5F55\u4E2D...",
                 mask: true
               });
-              let checkContentResult = await common_commonFunctions.commonFunctions.checkContentSecurity(checkContent);
+              let checkContentResult = await common_commonFunctions.commonFunctions.checkContentSecurity(
+                checkContent
+              );
               if (checkContentResult.errCode !== 0) {
                 common_vendor.index.hideLoading();
                 common_vendor.index.showModal({
@@ -536,7 +538,7 @@ const _sfc_main = {
         let proArr = [];
         for (let i = 0; i < localPicPathList.length; i++) {
           proArr.push(new Promise((resolve) => {
-            common_vendor.pn.uploadFile({
+            common_vendor.As.uploadFile({
               filePath: localPicPathList[i],
               cloudPath: app.globalData.wx_openid + "." + currentId + i + ".jpg"
             }).then((res) => {
@@ -569,8 +571,14 @@ const _sfc_main = {
                 that.memoryList = memoryList.slice(0, 15);
                 that.memorySum = memoryList.length;
                 that.searchMemory = "";
-                common_vendor.index.setStorageSync(app.globalData.memoryCacheName, memoryList.slice(0, 15));
-                common_vendor.index.setStorageSync(app.globalData.memorySumCacheName, memoryList.length);
+                common_vendor.index.setStorageSync(
+                  app.globalData.memoryCacheName,
+                  memoryList.slice(0, 15)
+                );
+                common_vendor.index.setStorageSync(
+                  app.globalData.memorySumCacheName,
+                  memoryList.length
+                );
               }).catch();
             } else {
               await db.collection("memory").where("wx_openid == '" + app.globalData.wx_openid + "'").update({
@@ -579,8 +587,14 @@ const _sfc_main = {
                 that.memoryList = memoryList.slice(0, 15);
                 that.memorySum = memoryList.length;
                 that.searchMemory = "";
-                common_vendor.index.setStorageSync(app.globalData.memoryCacheName, memoryList.slice(0, 15));
-                common_vendor.index.setStorageSync(app.globalData.memorySumCacheName, memoryList.length);
+                common_vendor.index.setStorageSync(
+                  app.globalData.memoryCacheName,
+                  memoryList.slice(0, 15)
+                );
+                common_vendor.index.setStorageSync(
+                  app.globalData.memorySumCacheName,
+                  memoryList.length
+                );
               }).catch();
             }
           }
@@ -602,13 +616,22 @@ const _sfc_main = {
                 title: "\u5220\u9664\u4E2D...",
                 mask: true
               });
-              let result = await handleMemory.deleteMemory(app.globalData.wx_openid, memory.id);
+              let result = await handleMemory.deleteMemory(
+                app.globalData.wx_openid,
+                memory.id
+              );
               if (result.errCode === 0) {
                 that.memoryList = result.data.memoryList.slice(0, 15);
                 that.searchMemory = "";
                 that.memorySum = result.data.memoryList.length;
-                common_vendor.index.setStorageSync(app.globalData.memoryCacheName, result.data.memoryList.slice(0, 15));
-                common_vendor.index.setStorageSync(app.globalData.memorySumCacheName, result.data.memoryList.length);
+                common_vendor.index.setStorageSync(
+                  app.globalData.memoryCacheName,
+                  result.data.memoryList.slice(0, 15)
+                );
+                common_vendor.index.setStorageSync(
+                  app.globalData.memorySumCacheName,
+                  result.data.memoryList.length
+                );
                 common_vendor.index.hideLoading();
                 common_vendor.index.showToast({
                   title: "\u5220\u9664\u6210\u529F",
@@ -648,7 +671,9 @@ const _sfc_main = {
             let memoryList = res.result.data[0] ? res.result.data[0].memoryList : [];
             for (let i = 0; i < memoryList.length; i++) {
               if (memoryList[i].title.indexOf(that.searchMemory) !== -1 || memoryList[i].content.indexOf(that.searchMemory) !== -1)
-                searchMemoryList.push(memoryList[i]);
+                searchMemoryList.push(
+                  memoryList[i]
+                );
             }
             that.memoryList = searchMemoryList;
           }
@@ -684,9 +709,9 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         })
       } : {}, {
         e: common_vendor.t(item.date + "    " + item.simpleAddress),
-        f: common_vendor.o(($event) => $options.onClickEditorMemory(item)),
+        f: common_vendor.o(($event) => $options.onClickEditorMemory(item), index),
         g: common_vendor.s("margin-top:" + (index === 0 ? "-70rpx" : "20rpx")),
-        h: common_vendor.o(($event) => $options.onClickMemoryCell(item)),
+        h: common_vendor.o(($event) => $options.onClickMemoryCell(item), index),
         i: index
       });
     })
@@ -701,7 +726,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     n: common_vendor.f($data.memoryDetail.cloudPicPathList, (item, index, i0) => {
       return {
         a: item ? item : "../../static/img_empty_icon.png",
-        b: common_vendor.o(($event) => $options.onPreviewMemoryCellPic("cloud", index)),
+        b: common_vendor.o(($event) => $options.onPreviewMemoryCellPic("cloud", index), index),
         c: common_vendor.s("margin-left:" + ((index + 1) % 5 === 1 ? "0rpx" : "10rpx") + ";margin-top:" + (index > 4 ? "5rpx" : "0rpx")),
         d: index
       };
@@ -727,8 +752,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     y: common_vendor.f($data.memoryDetail.localPicPathList, (item, index, i0) => {
       return {
         a: item ? item : "../../static/img_empty_icon.png",
-        b: common_vendor.o(($event) => $options.onPreviewMemoryCellPic("local", index)),
-        c: common_vendor.o(($event) => $options.onClickDeletePic(index)),
+        b: common_vendor.o(($event) => $options.onPreviewMemoryCellPic("local", index), index),
+        c: common_vendor.o(($event) => $options.onClickDeletePic(index), index),
         d: common_vendor.s("margin-left:" + ((index + 1) % 5 === 1 ? "0rpx" : "10rpx") + ";margin-top:" + (index > 4 ? "5rpx" : "0rpx")),
         e: index
       };
@@ -744,6 +769,5 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     E: common_vendor.o((...args) => $options.onClickAddMemoryWrite && $options.onClickAddMemoryWrite(...args))
   }) : {});
 }
-var MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__file", "C:/HBuilderX/projects/RecordLife/pages/memory/memory.vue"]]);
-_sfc_main.__runtimeHooks = 2;
+const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__file", "C:/HBuilderX/projects/RecordLife/pages/memory/memory.vue"]]);
 wx.createPage(MiniProgramPage);

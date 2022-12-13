@@ -1,8 +1,8 @@
 "use strict";
-var common_vendor = require("../../common/vendor.js");
-var common_commonFunctions = require("../../common/commonFunctions.js");
-const db = common_vendor.pn.database();
-const serverDate = common_vendor.pn.importObject("serverDate", {
+const common_vendor = require("../../common/vendor.js");
+const common_commonFunctions = require("../../common/commonFunctions.js");
+const db = common_vendor.As.database();
+const serverDate = common_vendor.As.importObject("serverDate", {
   customUI: true
 });
 const app = getApp();
@@ -269,10 +269,19 @@ const _sfc_main = {
                   } else {
                     await db.collection("wish").where("wx_openid == '" + app.globalData.wx_openid + "'").remove();
                   }
-                  that.wishList = that.handleWishDuration(wishList.slice(0, 30));
+                  that.wishList = that.handleWishDuration(wishList.slice(
+                    0,
+                    30
+                  ));
                   that.wishSum = wishList.length;
-                  common_vendor.index.setStorageSync(app.globalData.wishCacheName, wishList.slice(0, 30));
-                  common_vendor.index.setStorageSync(app.globalData.wishSumCacheName, wishList.length);
+                  common_vendor.index.setStorageSync(
+                    app.globalData.wishCacheName,
+                    wishList.slice(0, 30)
+                  );
+                  common_vendor.index.setStorageSync(
+                    app.globalData.wishSumCacheName,
+                    wishList.length
+                  );
                 }
               }).catch();
               common_vendor.index.hideLoading();
@@ -338,7 +347,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         f: item.state === 1 ? "../../static/img_wish_finish_icon.png" : "../../static/img_wish_give_up_icon.png",
         g: common_vendor.t(item.duration)
       } : {}, {
-        h: common_vendor.o(($event) => $options.onClickEditorWish(item)),
+        h: common_vendor.o(($event) => $options.onClickEditorWish(item), index),
         i: common_vendor.s("margin-top:" + (index === 0 ? "-70rpx" : "20rpx")),
         j: index
       });
@@ -352,6 +361,5 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     j: common_vendor.o((...args) => $options.onClickUploadWish && $options.onClickUploadWish(...args))
   } : {});
 }
-var MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__file", "C:/HBuilderX/projects/RecordLife/pages/wish/wish.vue"]]);
-_sfc_main.__runtimeHooks = 2;
+const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__file", "C:/HBuilderX/projects/RecordLife/pages/wish/wish.vue"]]);
 wx.createPage(MiniProgramPage);

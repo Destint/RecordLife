@@ -285,7 +285,9 @@ var Utils = {
     var radLatTo = this.rad(latTo);
     var a = radLatFrom - radLatTo;
     var b = this.rad(lngFrom) - this.rad(lngTo);
-    var distance = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2) + Math.cos(radLatFrom) * Math.cos(radLatTo) * Math.pow(Math.sin(b / 2), 2)));
+    var distance = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2) + Math.cos(radLatFrom) * Math.cos(
+      radLatTo
+    ) * Math.pow(Math.sin(b / 2), 2)));
     distance = distance * EARTH_RADIUS;
     distance = Math.round(distance * 1e4) / 1e4;
     return parseFloat(distance.toFixed(0));

@@ -1,12 +1,12 @@
 "use strict";
-var common_vendor = require("../../common/vendor.js");
-var common_commonFunctions = require("../../common/commonFunctions.js");
+const common_vendor = require("../../common/vendor.js");
+const common_commonFunctions = require("../../common/commonFunctions.js");
 const app = getApp();
-const db = common_vendor.pn.database();
-const serverDate = common_vendor.pn.importObject("serverDate", {
+const db = common_vendor.As.database();
+const serverDate = common_vendor.As.importObject("serverDate", {
   customUI: true
 });
-const handleCloudStorage = common_vendor.pn.importObject("handleCloudStorage", {
+const handleCloudStorage = common_vendor.As.importObject("handleCloudStorage", {
   customUI: true
 });
 const _sfc_main = {
@@ -25,7 +25,7 @@ const _sfc_main = {
       otherFunctionTitle: "",
       otherFunctionContent: "",
       isShowAboutApp: false,
-      aboutAppContent: "\u8FD9\u662F\u4E00\u4E2A\u53EF\u4EE5\u300A\u7559\u4F4F\u56DE\u5FC6\u300B\u7684\u5C0F\u7A0B\u5E8F\u3002\n\u53EF\u9009\u7684\u9700\u8981\u5C0F\u7A0B\u5E8F\u6388\u6743\u7684\u529F\u80FD\uFF1A\n1\u3001\u5F00\u542F\u5B9A\u4F4D\u540E\uFF0C\u53EF\u5728\u8BB0\u5F55\u56DE\u5FC6\u65F6\u8BB0\u4E0B\u4F4D\u7F6E\u4E0E\u5929\u6C14\u3002\n2\u3001\u53EF\u4ECE\u76F8\u518C\u4E2D\u9009\u62E9\u60F3\u8981\u7684\u56FE\u7247\u4E00\u540C\u8BB0\u5F55\u3002\n\u5982\u679C\u60A8\u5728\u4F7F\u7528\u5C0F\u7A0B\u5E8F\u65F6\u9047\u5230\u4EFB\u4F55\u95EE\u9898\u6216\u8005\u60A8\u5BF9\u5C0F\u7A0B\u5E8F\u6709\u66F4\u597D\u7684\u5EFA\u8BAE\u6216\u60F3\u6CD5\uFF0C\u6B22\u8FCE\u901A\u8FC7\u300A\u8054\u7CFB\u5BA2\u670D\u300B\u529F\u80FD\u6765\u5411\u5F00\u53D1\u8005\u53CD\u9988\u3002",
+      aboutAppContent: "\u56E0\u4E3A\u4F60 \u6240\u4EE5\u6709\u4E86\u6211\u3002\n\u53EF\u9009\u7684\u9700\u8981\u5C0F\u7A0B\u5E8F\u6388\u6743\u7684\u529F\u80FD\uFF1A\n1\u3001\u5F00\u542F\u5B9A\u4F4D\u540E\uFF0C\u53EF\u5728\u8BB0\u5F55\u56DE\u5FC6\u65F6\u8BB0\u4E0B\u4F4D\u7F6E\u4E0E\u5929\u6C14\u3002\n2\u3001\u53EF\u4ECE\u76F8\u518C\u4E2D\u9009\u62E9\u60F3\u8981\u7684\u56FE\u7247\u4E00\u540C\u8BB0\u5F55\u3002\n\u5982\u679C\u60A8\u5728\u4F7F\u7528\u5C0F\u7A0B\u5E8F\u65F6\u9047\u5230\u4EFB\u4F55\u95EE\u9898\u6216\u8005\u60A8\u5BF9\u5C0F\u7A0B\u5E8F\u6709\u66F4\u597D\u7684\u5EFA\u8BAE\u6216\u60F3\u6CD5\uFF0C\u6B22\u8FCE\u901A\u8FC7\u300A\u8054\u7CFB\u5BA2\u670D\u300B\u529F\u80FD\u6765\u5411\u5F00\u53D1\u8005\u53CD\u9988\u3002",
       isPraiseApp: common_vendor.index.getStorageSync(app.globalData.isPraiseAppCacheName) ? common_vendor.index.getStorageSync(app.globalData.isPraiseAppCacheName) : false,
       praiseAppSum: common_vendor.index.getStorageSync(app.globalData.praiseAppSumCacheName) ? common_vendor.index.getStorageSync(app.globalData.praiseAppSumCacheName) : 0
     };
@@ -221,7 +221,7 @@ const _sfc_main = {
           let compressRes = await that.compressImage(chooseImageList[i]);
           chooseImageList[i] = compressRes;
         }
-        await common_vendor.pn.uploadFile({
+        await common_vendor.As.uploadFile({
           filePath: chooseImageList[0],
           cloudPath: app.globalData.wx_openid + ".avatar.jpg"
         }).then(async (res) => {
@@ -564,6 +564,5 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     K: common_vendor.t($data.praiseAppSum)
   } : {});
 }
-var MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__file", "C:/HBuilderX/projects/RecordLife/pages/mine/mine.vue"]]);
-_sfc_main.__runtimeHooks = 2;
+const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__file", "C:/HBuilderX/projects/RecordLife/pages/mine/mine.vue"]]);
 wx.createPage(MiniProgramPage);

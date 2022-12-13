@@ -1,7 +1,6 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports[Symbol.toStringTag] = "Module";
-var common_vendor = require("./common/vendor.js");
+Object.defineProperties(exports, { __esModule: { value: true }, [Symbol.toStringTag]: { value: "Module" } });
+const common_vendor = require("./common/vendor.js");
 if (!Math) {
   "./pages/memory/memory.js";
   "./pages/wish/wish.js";
@@ -37,7 +36,7 @@ const _sfc_main = {
     wishCacheName: "wish"
   }
 };
-var App = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["__file", "C:/HBuilderX/projects/RecordLife/App.vue"]]);
+const App = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["__file", "C:/HBuilderX/projects/RecordLife/App.vue"]]);
 function createApp() {
   const app = common_vendor.createSSRApp(App);
   return {
